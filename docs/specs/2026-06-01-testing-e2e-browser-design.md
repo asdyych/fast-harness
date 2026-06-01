@@ -12,7 +12,7 @@ Give the harness a real, repeatable testing story across two layers, **project-a
 ## Hard constraints (from royde's habits + answers)
 
 - **Project-agnostic.** The login is **not necessarily Logto** — it depends on the actual project. No stack, auth provider, or URL is hardcoded. The harness provides CDP + an account store + an agent protocol; the repo describes the rest.
-- **User chooses `testing` vs `real` profile at run time** (default `testing`).
+- **Always a new Chrome window** on a dedicated, persistent testing profile (`--user-data-dir=~/.harness/chrome-test`). Never relaunches or touches the user's main Chrome — no `real`-profile mode (too intrusive).
 - **Agent picks the browser tool per task** — Chrome MCP (`mcp__Claude_in_Chrome__*`) for exploratory real-ops, Playwright-over-CDP (`mcp__plugin_playwright_*`) for repeatable regression.
 - **Real browser only.** No Preview MCP (gives false positives on auth/cookie/WS paths). `tsc` is a pre-check, not a substitute.
 - **Never pkill Chrome** — graceful quit only; the testing instance is a separate `--user-data-dir`, stopped by SIGTERM to its own recorded PID so the user's main Chrome is never touched.
@@ -23,15 +23,16 @@ Give the harness a real, repeatable testing story across two layers, **project-a
 ### 1. `scripts/harness-chrome-cdp.sh` — CDP-enabled Chrome manager
 
 ```
-harness-chrome-cdp.sh start  [--mode testing|real] [--port 9222] [--profile <name>] [--url <url>]
+harness-chrome-cdp.sh start  [--port 9222] [--url <url>]
 harness-chrome-cdp.sh status
 harness-chrome-cdp.sh stop
 ```
 
-- **`testing` (default)** — launches Chrome with a dedicated, persistent `--user-data-dir=~/.harness/chrome-test` and `--remote-debugging-port=9222`. Isolated from the user's real profile; test-account logins persist across runs. Records the launch PID.
-- **`real`** — warns first (tests run against the real logged-in account/data), gracefully quits the running Chrome (`osascript`), then relaunches the user's default profile with the debug port. Intrusive — opt-in only.
-- `start` verifies the CDP endpoint is up (`curl -s http://localhost:9222/json/version`) and prints the WebSocket/HTTP endpoint for the browser tool to attach to.
-- `stop` sends SIGTERM to the recorded **testing** PID (never `pkill`, never `-9`); for `real` mode it is a no-op with a note (don't kill the user's browser).
+- `start` opens a **new Chrome window** as a separate instance with a dedicated, persistent `--user-data-dir=~/.harness/chrome-test` and `--remote-debugging-port=9222`. It is a fresh window on its own profile — the user's main Chrome is never relaunched or touched. Test-account logins on this profile persist across runs. Records the launch PID, verifies the CDP endpoint (`curl -s http://localhost:9222/json/version`), and prints the endpoint for the browser tool to attach to.
+- `status` — is the CDP endpoint up, and on which PID.
+- `stop` sends SIGTERM to the recorded testing PID only (never `pkill`, never `-9`) — the user's main Chrome is unaffected.
+
+There is **no `real`-profile mode**: relaunching the user's logged-in Chrome is too intrusive. Testing always runs in a fresh, isolated window.
 
 ### 2. `scripts/harness-test-accounts.sh` — gitignored account store
 
@@ -55,7 +56,7 @@ Generic record (no Logto assumption):
 ### 3. `skills/e2e-browser/SKILL.md` — agent-driven real-browser E2E
 
 Protocol:
-1. **Bring up the browser.** If not already up, ask the user `testing` vs `real`, then `harness-chrome-cdp.sh start`.
+1. **Bring up the browser.** If the testing Chrome isn't already up, `harness-chrome-cdp.sh start` — a fresh isolated window on the persistent testing profile.
 2. **Resolve the app URL** — from the running worktree-dev frontend (`:3105`), the repo config, or ask.
 3. **Pick/record an account.** `harness-test-accounts.sh list`; if the needed account isn't there, **proactively `AskUserQuestion`** to record a batch (generic fields above), persist via `add`. Reuse across sessions.
 4. **Log in per the project's flow.** The agent reads the actual app and drives the login (Logto, basic, SSO, whatever it is) — not a hardcoded flow.
@@ -100,7 +101,7 @@ Reuses worktree-dev's running frontend; no new dev-server logic.
 
 | Question | Decision |
 |---|---|
-| Auth model | Both; **user chooses `testing` (default) vs `real`** at run time |
+| Browser session | **Always a new Chrome window** on a dedicated persistent testing profile; no `real`-profile mode (too intrusive) |
 | Login flow | **Project-defined, not Logto-specific** — harness is generic |
 | Browser tool | **Agent picks per task** (Chrome MCP exploratory / Playwright regression) |
 | Account store | per-repo `.harness/test-accounts.json`, gitignored, 0600 |
