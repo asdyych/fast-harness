@@ -1,0 +1,20 @@
+{
+  "name": "royde-harness",
+  "owner": {
+    "name": "ch-royde",
+    "url": "https://github.com/ch-royde"
+  },
+  "metadata": {
+    "description": "royde's personal Claude Code harness, published as one installable plugin — the reusable, secret-free pieces of a heavily-customized setup (destructive-op guard hook, subagent roster, kill-port skill).",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "royde-harness",
+      "description": "A surgical destructive-operation guard hook for bypassPermissions setups, a curated subagent roster, and a kill-port utility skill.",
+      "version": "0.1.0",
+      "source": "./plugins/royde-harness",
+      "category": "workflow"
+    }
+  ]
+}
