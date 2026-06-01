@@ -15,7 +15,7 @@ Add the marketplace once, then install the whole harness — this plugin plus th
 /plugin install harness-engineering-skills@royde-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `worktree-dev` / `review-loop` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/review-loop`, `/retro`) are usable.
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
 
 ## What's inside
 
@@ -23,13 +23,26 @@ Want only the guard + agents? Run the first two lines and stop. After install, t
 |---|---|
 | `hooks/destructive_guard.sh` | A `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
 | `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
+| `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Command: `/verify`. |
+| `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Commands: `/e2e`, `/chrome-cdp`. |
 | `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Command: `/review-loop`. |
 | `skills/clean-context/` | When to dispatch independent work (search, large reads, subtasks, review) to a **fresh sub-agent** to keep the main context clean. |
 | `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into a **tracked GitHub issue** + ready-to-paste edits **to this plugin itself**. Command: `/retro` (repo via `HARNESS_RETRO_REPO`). |
 | `agents/` | A curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
 
-These skills are the bespoke core — a worktree-per-task dev ritual, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The review-loop and clean-context patterns absorb the best ideas from heavier harnesses (convergence-driven iteration, evidence-based rejection, fresh-context-per-unit) without their orchestration weight.
+These skills are the bespoke core — a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The review-loop and clean-context patterns absorb the best ideas from heavier harnesses (convergence-driven iteration, evidence-based rejection, fresh-context-per-unit) without their orchestration weight.
+
+## Testing (two layers)
+
+Project-agnostic — the harness supplies the mechanism; each repo supplies its app URL, login flow, accounts, and test commands via `.harness-dev.conf` + a gitignored account store.
+
+- **Code level — `/verify`:** `npx tsc --noEmit` + `npx vitest run --coverage` (and an optional backend test command). Fast, deterministic; necessary but not sufficient.
+- **E2E — `/e2e`:** opens a fresh **isolated** Chrome window with CDP enabled (`/chrome-cdp`; never relaunches or kills your main Chrome — separate persistent profile, stopped by SIGTERM to its own PID), logs in with a recorded test account, and drives the real business flow. The agent picks the browser tool per task — Chrome MCP for exploratory, Playwright `connectOverCDP` for repeatable — and the login is whatever the project actually uses (not hardcoded to any provider). Real browser only; a green backend `/healthz` is not proof the user can log in.
+
+Test accounts live in a **gitignored, `chmod 600`** `.harness/test-accounts.json` per repo (`scripts/harness-test-accounts.sh`). The `e2e-browser` skill proactively asks you to record a batch the first time, then reuses them. Plaintext credentials never leave your machine and are never committed.
+
+Typical chain: `/wt-start` → `/verify` → `/e2e` → `/review-loop`.
 
 ## The guard hook
 
