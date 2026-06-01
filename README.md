@@ -44,6 +44,20 @@ The pattern lists are grouped A–E with comments inside the hook; tune to taste
 
 After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and `/kill-port` works.
 
+## Companion plugins (referenced, not vendored)
+
+This marketplace also catalogs the two third-party plugins this harness is designed to be used alongside. They are **referenced from their upstream repos** — never copied into this repo — so they always track their own maintainers and stay current:
+
+```
+/plugin install superpowers@royde-harness                 # obra/superpowers
+/plugin install harness-engineering-skills@royde-harness  # stone16/harness-engineering-skills
+```
+
+- **superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) — TDD, brainstorming, systematic debugging, and collaboration skills.
+- **harness-engineering-skills** ([stone16/harness-engineering-skills](https://github.com/stone16/harness-engineering-skills)) — cross-LLM `review-loop` and the cybernetics `harness` orchestrator.
+
+Installing this one marketplace therefore gives you the whole harness: the local plugin above **plus** these two upstream plugins, all from a single `marketplace add`.
+
 ## Subagents
 
 `architect` · `bug-analyzer` · `build-error-resolver` · `claude-md-guardian` · `code-reviewer` · `database-reviewer` · `dev-planner` · `doc-updater` · `e2e-runner` · `planner` · `refactor-cleaner` · `security-reviewer` · `story-generator` · `tdd-guide` · `ui-sketcher`

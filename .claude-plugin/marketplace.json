@@ -15,6 +15,18 @@
       "version": "0.1.0",
       "source": "./plugins/royde-harness",
       "category": "workflow"
+    },
+    {
+      "name": "superpowers",
+      "description": "Core skills library by obra (Jesse Vincent): TDD, brainstorming, systematic debugging, collaboration patterns. Referenced from upstream — not vendored.",
+      "source": { "source": "github", "repo": "obra/superpowers" },
+      "category": "workflow"
+    },
+    {
+      "name": "harness-engineering-skills",
+      "description": "stone16's cross-LLM review-loop + cybernetics Planner→Generator→Evaluator→Retro harness orchestration. Referenced from upstream — not vendored.",
+      "source": { "source": "git-subdir", "url": "https://github.com/stone16/harness-engineering-skills.git", "path": "plugins/harness-engineering-skills", "ref": "main" },
+      "category": "code-quality"
     }
   ]
 }
