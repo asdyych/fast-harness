@@ -9,7 +9,7 @@ Give the harness a real, repeatable testing story across two layers, **project-a
 1. **Code level** — frontend `tsc --noEmit` + `vitest run --coverage` (and a backend test command when configured). The fast green gate.
 2. **E2E real browser** — drive a real Chrome (via CDP) through actual business flows. Reuse a local Chrome profile so sessions persist; keep a recorded batch of test accounts; let the agent perform the test by browsing the app like a user.
 
-## Hard constraints (from royde's habits + answers)
+## Hard constraints (from the author's habits + answers)
 
 - **Project-agnostic.** The login is **not necessarily Logto** — it depends on the actual project. No stack, auth provider, or URL is hardcoded. The harness provides CDP + an account store + an agent protocol; the repo describes the rest.
 - **Always a new Chrome window** on a dedicated, persistent testing profile (`--user-data-dir=~/.harness/chrome-test`). Never relaunches or touches the user's main Chrome — no `real`-profile mode (too intrusive).

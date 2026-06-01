@@ -1,4 +1,4 @@
-# royde-harness
+# fast-harness
 
 An opinionated [Claude Code](https://claude.com/claude-code) harness, published as a single installable plugin. It bundles the **reusable, secret-free** pieces of a heavily-customized setup — the parts that make sense to share, without any personal rules, settings, memory, or credentials.
 
@@ -9,10 +9,10 @@ The headline is the **destructive-operation guard hook**: a thin safety rail for
 Add the marketplace once, then install the whole harness — this plugin plus the two upstream companions it pairs with — in one go:
 
 ```
-/plugin marketplace add ch-royde/royde-harness
-/plugin install royde-harness@royde-harness                 # this plugin: guard hook + 15 agents + kill-port
-/plugin install superpowers@royde-harness                   # obra/superpowers (referenced upstream)
-/plugin install harness-engineering-skills@royde-harness    # stone16/harness-engineering-skills (referenced upstream)
+/plugin marketplace add ch-royde/fast-harness
+/plugin install fast-harness@fast-harness                 # this plugin: guard hook + 15 agents + kill-port
+/plugin install superpowers@fast-harness                   # obra/superpowers (referenced upstream)
+/plugin install harness-engineering-skills@fast-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
 Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.

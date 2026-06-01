@@ -1,13 +1,13 @@
 {
-  "name": "royde-harness",
+  "name": "fast-harness",
   "description": "An opinionated Claude Code harness: a surgical destructive-operation guard hook for bypassPermissions setups, a curated subagent roster, and a kill-port utility skill.",
   "version": "0.1.0",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
   },
-  "homepage": "https://github.com/ch-royde/royde-harness",
-  "repository": "https://github.com/ch-royde/royde-harness",
+  "homepage": "https://github.com/ch-royde/fast-harness",
+  "repository": "https://github.com/ch-royde/fast-harness",
   "license": "MIT",
   "keywords": [
     "harness",

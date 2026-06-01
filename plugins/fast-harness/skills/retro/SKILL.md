@@ -12,7 +12,7 @@ description: |
 
 # Retro — improve the harness itself, on the record
 
-A self-improvement loop for the `royde-harness` plugin. It does not review project
+A self-improvement loop for the `fast-harness` plugin. It does not review project
 code; it notices where the harness *itself* helped or got in the way and turns
 that into a **tracked GitHub issue** plus a concrete edit to the plugin's files —
 so every finding is auditable, not a one-off comment that scrolls away.
@@ -44,7 +44,7 @@ so every finding is auditable, not a one-off comment that scrolls away.
    `HARNESS_RETRO_REPO`:
 
    ```bash
-   REPO="${HARNESS_RETRO_REPO:-ch-royde/royde-harness}"
+   REPO="${HARNESS_RETRO_REPO:-ch-royde/fast-harness}"
    gh label create retro --color BFD4F2 --description "harness self-retro" 2>/dev/null || true
    gh issue create --repo "$REPO" --label retro \
      --title "retro: <short pattern>" \
