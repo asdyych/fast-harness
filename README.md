@@ -4,6 +4,19 @@ An opinionated [Claude Code](https://claude.com/claude-code) harness, published 
 
 The headline is the **destructive-operation guard hook**: a thin safety rail for people who run Claude Code in `bypassPermissions` mode and have therefore removed the built-in permission wall.
 
+## Quick start
+
+Add the marketplace once, then install the whole harness — this plugin plus the two upstream companions it pairs with — in one go:
+
+```
+/plugin marketplace add ch-royde/royde-harness
+/plugin install royde-harness@royde-harness                 # this plugin: guard hook + 15 agents + kill-port
+/plugin install superpowers@royde-harness                   # obra/superpowers (referenced upstream)
+/plugin install harness-engineering-skills@royde-harness    # stone16/harness-engineering-skills (referenced upstream)
+```
+
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and `/kill-port` works.
+
 ## What's inside
 
 | Component | What it is |
@@ -35,28 +48,12 @@ terraform destroy -auto-approve  #DESTRUCTIVE-OK
 
 The pattern lists are grouped A–E with comments inside the hook; tune to taste. Design rule: *block only what you can't undo* — a noisy guard gets disabled, which is worse than a narrow one.
 
-## Install
-
-```
-/plugin marketplace add ch-royde/royde-harness
-/plugin install royde-harness@royde-harness
-```
-
-After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and `/kill-port` works.
-
 ## Companion plugins (referenced, not vendored)
 
-This marketplace also catalogs the two third-party plugins this harness is designed to be used alongside. They are **referenced from their upstream repos** — never copied into this repo — so they always track their own maintainers and stay current:
-
-```
-/plugin install superpowers@royde-harness                 # obra/superpowers
-/plugin install harness-engineering-skills@royde-harness  # stone16/harness-engineering-skills
-```
+The last two install lines in [Quick start](#quick-start) pull in third-party plugins this harness is designed to pair with. They are **referenced from their upstream repos** — never copied into this one — so they always track their own maintainers and stay current:
 
 - **superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) — TDD, brainstorming, systematic debugging, and collaboration skills.
 - **harness-engineering-skills** ([stone16/harness-engineering-skills](https://github.com/stone16/harness-engineering-skills)) — cross-LLM `review-loop` and the cybernetics `harness` orchestrator.
-
-Installing this one marketplace therefore gives you the whole harness: the local plugin above **plus** these two upstream plugins, all from a single `marketplace add`.
 
 ## Subagents
 
