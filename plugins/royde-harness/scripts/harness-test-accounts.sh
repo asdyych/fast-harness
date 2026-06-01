@@ -68,9 +68,11 @@ PY
       --notes) notes="${2:?}"; shift 2;;   *) echo "unknown: $1" >&2; exit 2;;
     esac; done
     [[ -n "$label" && -n "$user" ]] || { echo "need at least --label and --username" >&2; exit 2; }
-    python3 - "$STORE" "$label" "$url" "$user" "$pw" "$role" "$login" "$notes" <<'PY'
+    # password goes via env (not argv) so it is not visible in `ps` on the Python process either
+    HARNESS_PW="$pw" python3 - "$STORE" "$label" "$url" "$user" "$role" "$login" "$notes" <<'PY'
 import json,sys,os,tempfile
-store,label,url,user,pw,role,login,notes=sys.argv[1:9]
+store,label,url,user,role,login,notes=sys.argv[1:8]
+pw=os.environ.get("HARNESS_PW","")
 d=json.load(open(store)); acc=d.setdefault("accounts",[])
 acc[:]=[a for a in acc if a.get("label")!=label]   # replace same-label
 acc.append({"label":label,"app_url":url,"username":user,"password":pw,"role":role,"login":login,"notes":notes})
