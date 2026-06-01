@@ -25,7 +25,7 @@ Want only the guard + agents? Run the first two lines and stop. After install, t
 | `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
 | `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Command: `/review-loop`. |
 | `skills/clean-context/` | When to dispatch independent work (search, large reads, subtasks, review) to a **fresh sub-agent** to keep the main context clean. |
-| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into ready-to-paste edits **to this plugin itself**. Command: `/retro`. |
+| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into a **tracked GitHub issue** + ready-to-paste edits **to this plugin itself**. Command: `/retro` (repo via `HARNESS_RETRO_REPO`). |
 | `agents/` | A curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
 
