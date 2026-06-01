@@ -1,62 +1,88 @@
 ---
 name: review-loop
 description: |
-  Lean cross-LLM review loop — send the current diff/PR to one peer reviewer
-  (Codex via the codex MCP tool, or Gemini CLI), apply only the findings you
-  accept, re-review once if you changed something substantive, stop. No
-  Planner/Generator/Evaluator ceremony. Use for "review loop", "peer review",
+  Multi-round cross-LLM review loop — send the current diff/PR to one peer
+  reviewer (Codex via the codex MCP tool, or Gemini/Claude CLI), apply only the
+  findings you accept, and iterate until the peer has no new findings
+  (convergence), bounded by a max round count. Keeps the loop stable without
+  letting it drift toward over-constraint. Use for "review loop", "peer review",
   "cross review", "让 codex review 一下", "交叉 review", before merging a PR.
 ---
 
-# Lean review-loop
+# Cross-LLM review-loop
 
-A two-round-max cross-model review of the current change. The output is improved
-code plus a short consensus note — not a framework run.
+A convergence-driven cross-model review of the current change. It runs as many
+rounds as it takes for the peer to stop finding real issues — multi-round is how
+you get *stability* — while a per-round meta-goal check stops it from drifting
+into over-engineering. Output: improved code + a short consensus/escalation note.
 
 ## Protocol
 
-1. **Lock the meta-goal first.** Before round 1, write down — in one sentence —
-   what the change is actually supposed to achieve. This is the yardstick every
-   finding is measured against. Tell the reviewer: *"prefer fewer constraints;
-   accept correctness bug fixes; reject 'add more schema/checks/tests to raise
-   rigor' findings unless they fix a real defect."* Give the peer a bias toward
-   simplicity.
+1. **Lock the meta-goal, with the deletion rule.** Before round 1, write — in
+   one sentence — what this change is actually supposed to achieve. This is the
+   yardstick for every finding. Apply the **deletion rule**: *if a modification
+   can be removed without hurting the meta-goal, it should not exist.* Tell the
+   peer: *prefer fewer constraints; accept correctness/security/data-loss fixes;
+   reject "add more schema/checks/tests to raise rigor" unless it fixes a real
+   defect.*
 
-2. **Gather context:**
+2. **Preflight in one shot:**
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/scripts/review-context.sh" [base-ref]
+   "${CLAUDE_PLUGIN_ROOT}/scripts/review-context.sh" [--scope auto|diff|branch|pr]
    ```
+   One call returns scope, base, changed files, the diff, and which peer is
+   available — no multi-call context gathering.
 
-3. **Send to ONE peer reviewer.** Prefer the codex MCP tool
-   (`mcp__codex__codex`, `sandbox: read-only`); use the `gemini` CLI as the
-   alternate. Ask for: correctness bugs first, then simplifications — each with
-   `file:line` and a severity. Pass the meta-goal from step 1.
+3. **Send to ONE peer.** Prefer the codex MCP tool (`mcp__codex__codex`,
+   `sandbox: read-only`); use the `gemini` / `claude` CLI as the alternate. Ask
+   for correctness bugs first, then simplifications — each with `file:line` and a
+   severity. Pass the meta-goal from step 1.
 
-4. **Triage — you decide, not the reviewer.** Apply only findings you accept.
-   For each finding ask: *is this solving the user's original goal, or solving
-   complexity I introduced last round?* If the latter shows up twice, stop.
+4. **Triage — you decide, not the peer. Rejection needs evidence.** Apply only
+   findings you accept. To **reject** a material finding (correctness, security,
+   data-loss), attach a **Verification block** — the actual command you ran and
+   its output proving the code is correct. A rejection that cites only the spec,
+   a convention, or "I disagree" with **no verification output** is not a
+   rejection — downgrade it to *deferred for verification* and surface it in the
+   final note. (Style / "add rigor" findings can be rejected with a one-line
+   reason; this evidence bar is for material findings only.)
 
-5. **Re-review once, only if you made substantive changes.** Max 2 rounds.
+5. **Apply accepted fixes, then re-review. Iterate to convergence.** After each
+   round of fixes, run the peer again on the updated workspace. **Stop when the
+   peer returns no new findings** (consensus). Multi-round is expected and good
+   — it's what makes the result stable. Bound it: **default max 5 rounds**; if a
+   single finding is debated **2 exchanges without resolution → escalate it**
+   (don't keep arguing).
 
-6. **Final re-check against the ORIGINAL goal**, not against self-consistency.
-   Ask the peer: *"does the current diff actually solve <meta-goal>?"* — not
-   *"is it internally consistent?"*
+6. **Each round, re-check against the meta-goal — this is the anti-drift guard.**
+   Ask: *is this round's work solving the original goal, or solving complexity I
+   introduced last round?* The number of rounds is not the enemy — unchecked
+   constraint-adding is. The meta-goal check is what lets you run many rounds
+   safely.
 
-## The discipline this skill exists to enforce
+7. **Before declaring done, name ≥1 command-checkable acceptance criterion** for
+   any non-trivial change (e.g. `tsc --noEmit` clean, a specific test passes) and
+   confirm it — don't ship on "looks right."
+
+8. **Final note.** Either *consensus* (peer satisfied, criterion met) or an
+   **Escalated Items** list: for each unresolved finding, the host position, the
+   peer position, and the missing verification — for a human to decide.
+
+## The discipline this skill enforces
 
 Cross-LLM review loops have a structural bias: **resolving a finding almost
 always means adding a constraint** (a schema field, a check, a guard, a test).
-Run the loop long enough and the spec gets more "self-consistent" while drifting
-away from the original intent — a "reduce templating" change can come out the
-other end as "more templates, each stricter." Guard against it:
+Run long enough *without a guard* and "self-consistent" drifts from "right" — a
+"reduce templating" change can come out as "more templates, each stricter." The
+fix is not fewer rounds; it's the per-round meta-goal check plus:
 
-- **Rigor ≠ right.** Self-consistent is not the same as correct-for-the-goal.
+- **Rigor ≠ right.** Self-consistent is not correct-for-the-goal.
 - **Down-weight "critical".** A peer's "critical" is usually an
-  implementation-detail / schema contradiction; a genuinely wrong *direction*
-  rarely gets flagged critical, because the peer reviews the existing design's
-  consistency, not its premise.
+  implementation-detail / schema contradiction; a wrong *direction* rarely gets
+  flagged critical, because the peer reviews the design's consistency, not its
+  premise.
 - **Priority: simplicity > observability > rigor.** At MVP altitude, prefer a
-  coarse mechanism that might not work (failure is visible, easy to revert) over
-  a dense one whose failure hides inside many constraints.
-- **Cap at 2 rounds.** If round 3 would only add constraints with no behavior
-  impact, you're done — stop and ship.
+  coarse mechanism whose failure is visible and revertible over a dense one whose
+  failure hides inside many constraints.
+- **Converge, don't grind.** Stop when the peer has no new findings; escalate a
+  stalemate rather than adding constraints to "win" it.

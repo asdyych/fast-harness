@@ -15,7 +15,7 @@ Add the marketplace once, then install the whole harness — this plugin plus th
 /plugin install harness-engineering-skills@royde-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, the `worktree-dev` / `review-loop` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/review-loop`) are usable.
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `worktree-dev` / `review-loop` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/review-loop`, `/retro`) are usable.
 
 ## What's inside
 
@@ -23,11 +23,13 @@ Want only the guard + agents? Run the first two lines and stop. After install, t
 |---|---|
 | `hooks/destructive_guard.sh` | A `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
 | `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
-| `skills/review-loop/` | A lean cross-LLM review loop (codex/gemini peer, apply accepted fixes, max 2 rounds) with a built-in "rigor ≠ right" discipline. Command: `/review-loop`. |
+| `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Command: `/review-loop`. |
+| `skills/clean-context/` | When to dispatch independent work (search, large reads, subtasks, review) to a **fresh sub-agent** to keep the main context clean. |
+| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into ready-to-paste edits **to this plugin itself**. Command: `/retro`. |
 | `agents/` | A curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
 
-These two skills are the bespoke core — they encode a worktree-per-task dev ritual and a cross-model review discipline distilled from heavy daily use, rather than wrapping a generic framework.
+These skills are the bespoke core — a worktree-per-task dev ritual, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The review-loop and clean-context patterns absorb the best ideas from heavier harnesses (convergence-driven iteration, evidence-based rejection, fresh-context-per-unit) without their orchestration weight.
 
 ## The guard hook
 
@@ -66,7 +68,7 @@ The profile declares `MAIN_CHECKOUT`, `ENV_FILES`, `SYMLINKS`, `SERVICES` (`name
 
 ## review-loop
 
-A lean, two-round-max cross-model review of the current diff — the opposite of a heavyweight orchestrator. `/review-loop` gathers context via `scripts/review-context.sh`, sends it to one peer (codex MCP or `gemini` CLI), and applies only the findings you accept. Its built-in discipline guards against the failure mode of review loops: they bias toward *adding constraints*, so "self-consistent" drifts away from "right." Lock the meta-goal, down-weight "critical" implementation-detail findings, cap at two rounds, and re-check against the original goal — **rigor ≠ right**.
+A convergence-driven cross-model review of the current diff — the discipline of a heavy harness without its orchestration weight. `/review-loop` collects everything in one shot via `scripts/review-context.sh` (scope auto-detection: local-diff → branch → PR, plus peer availability — no multi-call context gathering), sends it to one peer (codex MCP or `gemini`/`claude` CLI), applies only the findings you accept, and **iterates until the peer has no new findings** (multi-round for stability; default max 5, escalate a finding debated 2 rounds). Rejecting a material finding requires a **Verification block** (command + output) — authority-only rejections are downgraded to "deferred." The anti-drift guard is a per-round re-check against the meta-goal, not a low round cap: review loops bias toward *adding constraints*, so the number of rounds isn't the enemy — unchecked rigor-creep is. **Rigor ≠ right.**
 
 ## Companion plugins (referenced, not vendored)
 

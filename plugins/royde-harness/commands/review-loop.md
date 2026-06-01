@@ -1,16 +1,20 @@
 ---
-description: Run a lean cross-LLM review loop on the current diff/PR (codex/gemini peer, apply accepted fixes, max 2 rounds)
+description: Multi-round cross-LLM review loop on the current diff/PR (codex/gemini peer, iterate to convergence, evidence-based rejects)
 ---
 
 Use the `review-loop` skill to review the current change.
 
-First state the meta-goal of the change in one sentence, then gather context:
+First state the meta-goal in one sentence and apply the deletion rule (if a
+change can be removed without hurting the goal, it shouldn't exist). Then run the
+single-shot preflight:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/scripts/review-context.sh" $ARGUMENTS
 ```
 
-Send it to one peer reviewer (codex MCP, read-only sandbox; or `gemini` CLI),
-biased toward simplicity. Apply only findings you accept, re-review once if you
-changed something substantive, and stop after at most two rounds — checking the
-diff against the original goal, not against self-consistency. Rigor ≠ right.
+Send it to one peer (codex MCP, read-only; or `gemini`/`claude` CLI). Apply only
+findings you accept — rejecting a material finding requires a Verification block
+(command + output), not just "the spec says so." Re-review after each round of
+fixes and **iterate until the peer has no new findings** (max 5 rounds; escalate
+a finding debated 2 rounds). Each round, re-check against the original goal —
+rigor ≠ right. End with consensus or an Escalated Items list.
