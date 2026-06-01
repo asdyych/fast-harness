@@ -15,15 +15,19 @@ Add the marketplace once, then install the whole harness — this plugin plus th
 /plugin install harness-engineering-skills@royde-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and `/kill-port` works.
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, the `worktree-dev` / `review-loop` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/review-loop`) are usable.
 
 ## What's inside
 
 | Component | What it is |
 |---|---|
 | `hooks/destructive_guard.sh` | A `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
+| `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
+| `skills/review-loop/` | A lean cross-LLM review loop (codex/gemini peer, apply accepted fixes, max 2 rounds) with a built-in "rigor ≠ right" discipline. Command: `/review-loop`. |
 | `agents/` | A curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
+
+These two skills are the bespoke core — they encode a worktree-per-task dev ritual and a cross-model review discipline distilled from heavy daily use, rather than wrapping a generic framework.
 
 ## The guard hook
 
@@ -47,6 +51,22 @@ terraform destroy -auto-approve  #DESTRUCTIVE-OK
 ```
 
 The pattern lists are grouped A–E with comments inside the hook; tune to taste. Design rule: *block only what you can't undo* — a noisy guard gets disabled, which is worse than a narrow one.
+
+## worktree-dev
+
+A worktree-per-task workflow repeats the same setup ritual every time. `scripts/harness-worktree-dev.sh` drives it from a per-repo profile (`.harness-dev.conf`):
+
+```bash
+/wt-start    # copy env (both ends) + symlink .venv/node_modules + free ports + start services + health-check
+/wt-status   # which services are running, which ports are up
+/wt-stop     # kill service PIDs + free ports — worktree left intact (no implicit removal)
+```
+
+The profile declares `MAIN_CHECKOUT`, `ENV_FILES`, `SYMLINKS`, `SERVICES` (`name|port|subdir|command`), and `HEALTH` — see `skills/worktree-dev/example.harness-dev.conf`. The skill carries the judgment the script can't: copy *all* env files (a missing frontend `VITE_*` is silently `undefined`), restart Vite after env edits (it snapshots env at startup), and never treat a green backend `/healthz` as proof the frontend can log in.
+
+## review-loop
+
+A lean, two-round-max cross-model review of the current diff — the opposite of a heavyweight orchestrator. `/review-loop` gathers context via `scripts/review-context.sh`, sends it to one peer (codex MCP or `gemini` CLI), and applies only the findings you accept. Its built-in discipline guards against the failure mode of review loops: they bias toward *adding constraints*, so "self-consistent" drifts away from "right." Lock the meta-goal, down-weight "critical" implementation-detail findings, cap at two rounds, and re-check against the original goal — **rigor ≠ right**.
 
 ## Companion plugins (referenced, not vendored)
 
