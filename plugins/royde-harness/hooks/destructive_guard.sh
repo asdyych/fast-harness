@@ -125,8 +125,10 @@ env?), then choose:
   • If you're testing a theory: run it against a LOCAL/disposable target,
     not production or shared infra.
   • If this is a false positive (the regex over-matched a safe command):
-    tune the destructive_guard.sh hook — the pattern lists are
-    grouped A–E with comments.
+    note this matches command TEXT — a command that only *mentions* a
+    blocked phrase (an echo / grep / test payload or heredoc) trips it too.
+    Add the marker, or avoid embedding the literal phrase. To retune the
+    patterns, edit the destructive_guard.sh hook (groups A–E are commented).
 
 Command that was blocked:
 $command
