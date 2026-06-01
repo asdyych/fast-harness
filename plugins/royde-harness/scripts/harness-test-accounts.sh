@@ -22,9 +22,10 @@ STORE="$ROOT/.harness/test-accounts.json"
 ensure_store(){
   mkdir -p "$ROOT/.harness"
   [[ -f "$STORE" ]] || { printf '{\n  "accounts": []\n}\n' > "$STORE"; }
-  chmod 600 "$STORE" 2>/dev/null || true
+  # Safety invariants — fail loudly rather than leave creds exposed/committable.
+  chmod 600 "$STORE" || { echo "FATAL: cannot chmod 600 $STORE — refusing (would leave credentials readable)" >&2; exit 1; }
   if ! grep -qxF '.harness/' "$ROOT/.gitignore" 2>/dev/null; then
-    echo '.harness/' >> "$ROOT/.gitignore"
+    printf '\n.harness/\n' >> "$ROOT/.gitignore" || { echo "FATAL: cannot add .harness/ to $ROOT/.gitignore — refusing (credentials could be committed)" >&2; exit 1; }
   fi
 }
 
@@ -62,20 +63,27 @@ PY
     while [[ $# -gt 0 ]]; do case "$1" in
       --label) label="${2:?}"; shift 2;;  --url) url="${2:?}"; shift 2;;
       --username) user="${2:?}"; shift 2;; --password) pw="${2:?}"; shift 2;;
+      --password-stdin) IFS= read -r pw || true; shift;;   # preferred: keeps the password out of argv/ps
       --role) role="${2:?}"; shift 2;;     --login) login="${2:?}"; shift 2;;
       --notes) notes="${2:?}"; shift 2;;   *) echo "unknown: $1" >&2; exit 2;;
     esac; done
     [[ -n "$label" && -n "$user" ]] || { echo "need at least --label and --username" >&2; exit 2; }
     python3 - "$STORE" "$label" "$url" "$user" "$pw" "$role" "$login" "$notes" <<'PY'
-import json,sys
+import json,sys,os,tempfile
 store,label,url,user,pw,role,login,notes=sys.argv[1:9]
 d=json.load(open(store)); acc=d.setdefault("accounts",[])
 acc[:]=[a for a in acc if a.get("label")!=label]   # replace same-label
 acc.append({"label":label,"app_url":url,"username":user,"password":pw,"role":role,"login":login,"notes":notes})
-json.dump(d,open(store,"w"),indent=2,ensure_ascii=False)
-print(f"saved account '{label}' ({len(acc)} total) — stored locally, gitignored")
+# atomic write with 600 perms so a mid-write crash can't corrupt or expose the store
+fd,tmp=tempfile.mkstemp(dir=os.path.dirname(store))
+os.fchmod(fd,0o600)
+try:
+    with os.fdopen(fd,"w") as f: json.dump(d,f,indent=2,ensure_ascii=False)
+    os.replace(tmp,store)
+except Exception:
+    os.path.exists(tmp) and os.unlink(tmp); raise
+print(f"saved account '{label}' ({len(acc)} total) — stored locally (chmod 600), gitignored")
 PY
-    chmod 600 "$STORE" 2>/dev/null || true
     ;;
   path) ensure_store; echo "$STORE";;
   *) echo "usage: harness-test-accounts.sh <list|get <label>|add ...|path>" >&2; exit 2;;

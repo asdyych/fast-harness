@@ -50,11 +50,23 @@ try:
     if ws: print("   ws:", ws)
 except Exception: pass' 2>/dev/null; }
 
+# Is this PID our harness testing Chrome (right profile + right port)? Guards
+# against attaching to / killing the user's main Chrome or a reused PID.
+is_ours(){
+  local c; c="$(ps -p "${1:-0}" -o command= 2>/dev/null)" || return 1
+  [[ "$c" == *"--user-data-dir=$DATA_DIR"* && "$c" == *"--remote-debugging-port=$PORT"* ]]
+}
+
 cmd_start(){
   if cdp_up; then
-    echo "CDP already up on :$PORT — attaching to the existing instance."
-    echo "  (if that is NOT the harness testing window, run with a different --port)"
-    print_browser; return 0
+    if [[ -f "$PIDFILE" ]] && is_ours "$(cat "$PIDFILE")"; then
+      echo "CDP already up on :$PORT (harness testing window, pid $(cat "$PIDFILE"))."
+      print_browser; return 0
+    fi
+    echo "✗ Something else already serves CDP on :$PORT — NOT the harness profile" >&2
+    echo "  (likely your main Chrome or a browser-use session). Refusing to attach." >&2
+    echo "  Use a different port:  harness-chrome-cdp.sh start --port 9333" >&2
+    exit 1
   fi
   [[ -x "$CHROME_BIN" ]] || { echo "Chrome not found at: $CHROME_BIN (set CHROME_BIN)" >&2; exit 1; }
   echo "opening a fresh Chrome window — profile $DATA_DIR, port $PORT …"
@@ -86,8 +98,10 @@ cmd_status(){
 cmd_stop(){
   if [[ -f "$PIDFILE" ]]; then
     pid="$(cat "$PIDFILE")"
-    if kill -0 "$pid" 2>/dev/null; then
+    if is_ours "$pid"; then
       kill "$pid" 2>/dev/null && echo "stopped testing Chrome (pid $pid, SIGTERM)"
+    elif kill -0 "$pid" 2>/dev/null; then
+      echo "recorded pid $pid is NOT the harness Chrome (stale/reused) — leaving it alone"
     else
       echo "recorded pid $pid not running"
     fi

@@ -24,9 +24,10 @@ COVERAGE_CMD=""
 BACKEND_DIR=""
 BACKEND_TEST_CMD=""
 # shellcheck disable=SC1090
-[[ -f "$CONF" ]] && source "$CONF" || true
+if [[ -f "$CONF" ]]; then source "$CONF" || { echo "failed to source $CONF (syntax error?)" >&2; exit 1; }; fi
 
 WHICH="${1:-all}"
+case "$WHICH" in all|frontend|backend|types) ;; *) echo "unknown target: $WHICH (use: all|frontend|backend|types)" >&2; exit 2;; esac
 fail=0
 run(){ # label  workdir  command
   echo "▶ $1"
