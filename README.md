@@ -22,6 +22,7 @@ Want only the guard + agents? Run the first two lines and stop. After install, t
 | Component | What it is |
 |---|---|
 | `hooks/destructive_guard.sh` | A `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
+| `hooks/session-rules.sh` | A `SessionStart` hook injecting two always-on rules: address the user by their configured name every reply (a context-drift signal), and restate complex/multi-step requests before acting so they can confirm your understanding. |
 | `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
 | `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Command: `/verify`. |
 | `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Commands: `/e2e`, `/chrome-cdp`. |
@@ -66,6 +67,21 @@ terraform destroy -auto-approve  #DESTRUCTIVE-OK
 ```
 
 The pattern lists are grouped A–E with comments inside the hook; tune to taste. Design rule: *block only what you can't undo* — a noisy guard gets disabled, which is worse than a narrow one.
+
+## Session rules
+
+A plugin can't edit your `CLAUDE.md`, but a `SessionStart` hook can inject context into every session — that's how `hooks/session-rules.sh` ships two always-on rules:
+
+1. **Address you by name every reply.** A small thing that doubles as a context-drift signal — if the agent stops using your name, it's a tell that it lost the thread.
+2. **Restate complex requests before acting.** For any non-trivial / multi-step ask, the agent restates the goal, scope, and deliverable in a sentence and waits for your confirmation — catching a misunderstanding before it costs work.
+
+Set your name once (stored globally at `~/.harness/identity`):
+
+```bash
+"$(...)/scripts/harness-identity.sh" set "your-name"      # or: export HARNESS_USER_NAME=your-name
+```
+
+If no name is set, the injected rule tells the agent to ask you on its first reply and offer to save it. These are *additional context*, lower priority than your own `CLAUDE.md` — they never override your instructions.
 
 ## worktree-dev
 
