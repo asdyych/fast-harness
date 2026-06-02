@@ -11,8 +11,8 @@ case "$CMD" in
   set)
     name="${*:-}"
     [[ -n "$name" ]] || { echo "usage: harness-identity.sh set <name>" >&2; exit 2; }
-    mkdir -p "$(dirname "$STORE")"
-    printf '%s\n' "$name" > "$STORE"
+    mkdir -p "$(dirname "$STORE")" || { echo "cannot create $(dirname "$STORE")" >&2; exit 1; }
+    printf '%s\n' "$name" > "$STORE" || { echo "cannot write $STORE" >&2; exit 1; }
     echo "saved — the harness will address you as: $name"
     ;;
   get)

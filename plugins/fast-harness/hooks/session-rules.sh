@@ -33,22 +33,16 @@ ${name_rule}
 **Restate complex requests before acting.** For any non-trivial or multi-step request, first restate it back in one or two sentences — the goal, the scope, and the deliverable — and let the user confirm you understood correctly before starting work. If you cannot restate it confidently, ask one clarifying question instead of assuming. This catches a misunderstanding before it costs real work.
 </fast-harness-rules>"
 
-# Emit only the field the current host consumes (mirrors superpowers' contract).
-# JSON is built with python's json.dumps for bulletproof escaping.
-if [[ -n "${CURSOR_PLUGIN_ROOT:-}" ]]; then mode=cursor
-elif [[ -n "${CLAUDE_PLUGIN_ROOT:-}" && -z "${COPILOT_CLI:-}" ]]; then mode=claude
-else mode=sdk
-fi
+# Emit the Claude Code SessionStart additionalContext as JSON (json.dumps handles
+# all escaping). This plugin wires SessionStart for Claude Code only. python is
+# the only encoder used — if it is unavailable, skip injection cleanly (exit 0)
+# rather than break the session.
+PYBIN="$(command -v python3 || command -v python || true)"
+[[ -z "$PYBIN" ]] && exit 0
 
-HARNESS_RULES="$rules" python3 -c '
-import json, os, sys
+HARNESS_RULES="$rules" "$PYBIN" -c '
+import json, os
 ctx = os.environ["HARNESS_RULES"]
-mode = sys.argv[1]
-if mode == "cursor":
-    print(json.dumps({"additional_context": ctx}))
-elif mode == "claude":
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": ctx}}))
-else:
-    print(json.dumps({"additionalContext": ctx}))
-' "$mode"
+print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": ctx}}))
+'
 exit 0
