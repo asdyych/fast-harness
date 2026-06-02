@@ -35,9 +35,8 @@ you supply the judgment about what the flow should do.
    Test-account logins persist there across runs, so step 3 is usually a no-op
    after the first time.
 
-2. **Resolve the app URL.** Prefer the running worktree-dev frontend
-   (`http://localhost:3105` by convention), else the repo config / `.harness-dev.conf`
-   `APP_URL`, else ask.
+2. **Resolve the app URL.** Prefer the running worktree-dev frontend (the port
+   from your `.harness-dev.conf` frontend service), else its `APP_URL`, else ask.
 
 3. **Get a test account.**
    ```bash

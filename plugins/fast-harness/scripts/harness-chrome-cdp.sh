@@ -19,8 +19,25 @@ set -uo pipefail
 PORT=9222
 URL=""
 DATA_DIR="${HARNESS_CHROME_DIR:-$HOME/.harness/chrome-test}"
-CHROME_BIN="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 RUN="$HOME/.harness/chrome-cdp"
+
+# Cross-platform Chrome/Chromium discovery (override with CHROME_BIN).
+find_chrome(){
+  [[ -n "${CHROME_BIN:-}" ]] && { echo "$CHROME_BIN"; return; }
+  local p
+  for p in \
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"; do
+    [[ -x "$p" ]] && { echo "$p"; return; }
+  done
+  for p in google-chrome google-chrome-stable chromium chromium-browser microsoft-edge chrome; do
+    command -v "$p" >/dev/null 2>&1 && { echo "$p"; return; }
+  done
+  echo ""   # not found
+}
+CHROME_BIN="$(find_chrome)"
+chrome_ok(){ [[ -n "$CHROME_BIN" ]] && { [[ "$CHROME_BIN" == */* ]] && [[ -x "$CHROME_BIN" ]] || command -v "$CHROME_BIN" >/dev/null 2>&1; }; }
 
 usage(){ cat <<EOF
 harness-chrome-cdp.sh <start|status|stop> [--port N] [--url URL]
@@ -68,7 +85,7 @@ cmd_start(){
     echo "  Use a different port:  harness-chrome-cdp.sh start --port 9333" >&2
     exit 1
   fi
-  [[ -x "$CHROME_BIN" ]] || { echo "Chrome not found at: $CHROME_BIN (set CHROME_BIN)" >&2; exit 1; }
+  chrome_ok || { echo "Chrome/Chromium not found. Install it or set CHROME_BIN to the binary path." >&2; exit 1; }
   echo "opening a fresh Chrome window — profile $DATA_DIR, port $PORT …"
   "$CHROME_BIN" \
     --user-data-dir="$DATA_DIR" \

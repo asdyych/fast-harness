@@ -16,10 +16,9 @@
 #   MAIN_CHECKOUT="/abs/path/to/main/checkout"
 #   ENV_FILES=( "backend/.env" "frontend/.env" "frontend/.env.staging" )   # relpaths copied main -> worktree
 #   SYMLINKS=( "backend/.venv" "frontend/node_modules" )                   # relpaths symlinked main -> worktree
-#   SERVICES=( "backend|8105|backend|uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8105"
-#              "frontend|3105|frontend|npm run dev"
-#              "stripe|0|.|./dev-stripe.sh" )                              # name|port|subdir|command  (port 0 = no port)
-#   HEALTH=( "backend|http://localhost:8105/healthz" "frontend|http://localhost:3105" )
+#   SERVICES=( "backend|8000|backend|uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+#              "frontend|5173|frontend|npm run dev" )                      # name|port|subdir|command  (port 0 = no port)
+#   HEALTH=( "backend|http://localhost:8000/healthz" "frontend|http://localhost:5173" )
 #
 # Design rule (matches the author's standing worktree habits):
 #   - Backend /healthz green does NOT prove the frontend can log in — copy ALL
@@ -61,7 +60,8 @@ source "$PROFILE"
 : "${MAIN_CHECKOUT:?profile must set MAIN_CHECKOUT}"
 [[ -d "$MAIN_CHECKOUT" ]] || { echo "MAIN_CHECKOUT does not exist: $MAIN_CHECKOUT" >&2; exit 1; }
 
-KEY="$(printf '%s' "$WT" | shasum | cut -c1-8)"
+hash_path(){ if command -v shasum >/dev/null 2>&1; then shasum; elif command -v sha1sum >/dev/null 2>&1; then sha1sum; else cksum; fi; }
+KEY="$(printf '%s' "$WT" | hash_path | cut -c1-8)"
 RUN="/tmp/harness-wt-$KEY"
 mkdir -p "$RUN"
 

@@ -35,11 +35,11 @@ The script does the mechanical work. You own these calls:
 
 - **Copy ALL env files for BOTH ends.** A missing `frontend/.env*` does NOT
   error — Vite starts, `curl /` returns 200, backend `/healthz` is green — and
-  then login is broken because `VITE_LOGTO_*` is `undefined`. List every env
-  variant in the profile's `ENV_FILES`, frontend included.
-- **Backend `/healthz` green ≠ the frontend can log in.** The real divide is
-  whether `VITE_LOGTO_*` / `VITE_API_BASE_URL` made it into the bundle. Don't
-  report success off a backend health check alone.
+  then auth/API calls break because the frontend's `VITE_*` vars are `undefined`.
+  List every env variant in the profile's `ENV_FILES`, frontend included.
+- **Backend `/healthz` green ≠ the frontend works.** The real divide is whether
+  the frontend's `VITE_*` (auth endpoint, `VITE_API_BASE_URL`, …) made it into
+  the bundle. Don't report success off a backend health check alone.
 - **Vite snapshots `VITE_*` at startup.** If you copy/edit env after the dev
   server is up, you MUST `stop` then `start` that service — HMR will not pick up
   env changes.
