@@ -15,8 +15,18 @@ so the browser pass tests real behavior, not typos.
 
 ## Run it
 
+First resolve the installed plugin root. In Claude Code, use
+`CLAUDE_PLUGIN_ROOT`. In Codex, use `CODEX_PLUGIN_ROOT` if the host provides it;
+otherwise derive the plugin root from this `SKILL.md` source path (two
+directories above this skill directory) and substitute that absolute path.
+
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-verify.sh" [all|frontend|backend|types]
+HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+  echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+  exit 2
+fi
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-verify.sh" [all|frontend|backend|types]
 ```
 
 It runs, per the repo's `.harness-dev.conf` (all keys optional, defaults shown):

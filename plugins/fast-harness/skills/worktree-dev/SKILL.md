@@ -17,10 +17,20 @@ ritual is one command instead of ten.
 
 ## Run it
 
+First resolve the installed plugin root. In Claude Code, use
+`CLAUDE_PLUGIN_ROOT`. In Codex, use `CODEX_PLUGIN_ROOT` if the host provides it;
+otherwise derive the plugin root from this `SKILL.md` source path (two
+directories above this skill directory) and substitute that absolute path.
+
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" start  --worktree <path>
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" status --worktree <path>
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" stop   --worktree <path>
+HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+  echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+  exit 2
+fi
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" start  --worktree <path>
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" status --worktree <path>
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-worktree-dev.sh" stop   --worktree <path>
 ```
 
 `--worktree` defaults to the current directory. `--services backend,frontend`

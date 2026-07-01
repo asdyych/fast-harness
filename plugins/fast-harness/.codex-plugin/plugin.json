@@ -1,0 +1,40 @@
+{
+  "name": "fast-harness",
+  "version": "0.1.0",
+  "description": "An opinionated coding harness with project-agnostic verification, browser E2E, worktree dev helpers, review-loop discipline, and safety-oriented workflows.",
+  "author": {
+    "name": "ch-royde",
+    "url": "https://github.com/ch-royde"
+  },
+  "homepage": "https://github.com/ch-royde/fast-harness",
+  "repository": "https://github.com/ch-royde/fast-harness",
+  "license": "MIT",
+  "keywords": [
+    "harness",
+    "codex",
+    "skills",
+    "worktree",
+    "verification",
+    "e2e",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "fast-harness",
+    "shortDescription": "Reusable coding harness skills for verification, E2E, worktrees, review, and safety.",
+    "longDescription": "fast-harness packages reusable, secret-free workflow skills for local development: per-worktree service setup, code-level verification, real-browser E2E, cross-model review discipline, context hygiene, retrospective improvement, and small utilities. Claude Code-only hooks and slash commands remain available through the Claude plugin manifest; Codex installs the shared skills and supporting scripts.",
+    "developerName": "ch-royde",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/ch-royde/fast-harness",
+    "defaultPrompt": [
+      "Run the fast-harness verification flow.",
+      "Start my worktree dev environment.",
+      "Review this change with fast-harness."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

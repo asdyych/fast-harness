@@ -5,7 +5,12 @@ description: Code-level green gate — frontend typecheck (tsc) + tests with cov
 Use the `verify` skill. Run the code-level checks:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-verify.sh" $ARGUMENTS
+HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+  echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+  exit 2
+fi
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-verify.sh" $ARGUMENTS
 ```
 
 Reads commands/coverage from `.harness-dev.conf` (defaults: `npx tsc --noEmit`,

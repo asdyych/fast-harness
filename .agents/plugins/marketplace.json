@@ -1,0 +1,20 @@
+{
+  "name": "fast-harness",
+  "interface": {
+    "displayName": "fast-harness"
+  },
+  "plugins": [
+    {
+      "name": "fast-harness",
+      "source": {
+        "source": "local",
+        "path": "./plugins/fast-harness"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

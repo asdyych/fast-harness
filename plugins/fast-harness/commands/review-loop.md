@@ -9,7 +9,12 @@ change can be removed without hurting the goal, it shouldn't exist). Then run th
 single-shot preflight:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/review-context.sh" $ARGUMENTS
+HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+  echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+  exit 2
+fi
+"${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" $ARGUMENTS
 ```
 
 Send it to one peer (codex MCP, read-only; or `gemini`/`claude` CLI). Apply only

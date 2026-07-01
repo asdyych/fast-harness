@@ -7,7 +7,12 @@ Use the `e2e-browser` skill.
 Bring up an isolated testing Chrome (never your main one):
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/harness-chrome-cdp.sh" start $ARGUMENTS
+HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+  echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+  exit 2
+fi
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-chrome-cdp.sh" start $ARGUMENTS
 ```
 
 Resolve the app URL (prefer the running worktree-dev frontend), get a test

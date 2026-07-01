@@ -29,8 +29,18 @@ you supply the judgment about what the flow should do.
 
 1. **Bring up the browser.** If the testing Chrome isn't up:
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/scripts/harness-chrome-cdp.sh" start [--port 9222]
+   HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+   if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+     echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+     exit 2
+   fi
+   "${HARNESS_PLUGIN_ROOT}/scripts/harness-chrome-cdp.sh" start [--port 9222]
    ```
+   In Claude Code, `CLAUDE_PLUGIN_ROOT` is available. In Codex, use
+   `CODEX_PLUGIN_ROOT` if the host provides it; otherwise derive the plugin root
+   from this `SKILL.md` source path (two directories above this skill directory)
+   and substitute that absolute path.
+
    A fresh isolated window on a persistent profile (`~/.harness/chrome-test`).
    Test-account logins persist there across runs, so step 3 is usually a no-op
    after the first time.
@@ -40,7 +50,12 @@ you supply the judgment about what the flow should do.
 
 3. **Get a test account.**
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/scripts/harness-test-accounts.sh" list
+   HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+   if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+     echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+     exit 2
+   fi
+   "${HARNESS_PLUGIN_ROOT}/scripts/harness-test-accounts.sh" list
    ```
    If the account you need isn't there, **proactively `AskUserQuestion`** to
    record a batch — label, app URL, username, password, role, and a one-line

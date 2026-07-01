@@ -28,8 +28,18 @@ into over-engineering. Output: improved code + a short consensus/escalation note
 
 2. **Preflight in one shot:**
    ```bash
-   "${CLAUDE_PLUGIN_ROOT}/scripts/review-context.sh" [--scope auto|diff|branch|pr]
+   HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+   if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
+     echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
+     exit 2
+   fi
+   "${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" [--scope auto|diff|branch|pr]
    ```
+   In Claude Code, `CLAUDE_PLUGIN_ROOT` is available. In Codex, use
+   `CODEX_PLUGIN_ROOT` if the host provides it; otherwise derive the plugin root
+   from this `SKILL.md` source path (two directories above this skill directory)
+   and substitute that absolute path.
+
    One call returns scope, base, changed files, the diff, and which peer is
    available — no multi-call context gathering.
 
