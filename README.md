@@ -1,10 +1,12 @@
 # fast-harness
 
-An opinionated [Claude Code](https://claude.com/claude-code) harness, published as a single installable plugin. It bundles the **reusable, secret-free** pieces of a heavily-customized setup — the parts that make sense to share, without any personal rules, settings, memory, or credentials.
+An opinionated coding harness, published as installable plugins for **Claude Code** and **Codex**. It bundles the **reusable, secret-free** pieces of a heavily-customized setup — the parts that make sense to share, without any personal rules, settings, memory, or credentials.
 
-The headline is the **destructive-operation guard hook**: a thin safety rail for people who run Claude Code in `bypassPermissions` mode and have therefore removed the built-in permission wall.
+The headline on Claude Code is the **destructive-operation guard hook**: a thin safety rail for people who run Claude Code in `bypassPermissions` mode and have therefore removed the built-in permission wall. On Codex, the shared skills and scripts install as a Codex plugin; Claude-specific hooks, slash commands, and subagent manifests remain Claude-only.
 
 ## Quick start
+
+### Claude Code
 
 Add the marketplace once, then install the whole harness — this plugin plus the two upstream companions it pairs with — in one go:
 
@@ -15,24 +17,57 @@ Add the marketplace once, then install the whole harness — this plugin plus th
 /plugin install harness-engineering-skills@fast-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `sdd` / `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/sdd-start`, `/sdd-status`, `/sdd-finish`, `/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
+
+### Codex
+
+From this repo root, add the repo-local Codex marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add .
+codex plugin add fast-harness@fast-harness
+```
+
+Codex installs the shared `skills/` and supporting `scripts/`. It does not load Claude Code's `hooks/`, `commands/`, or `agents/` directories. Use the skills by asking for the workflow directly, for example "start an SDD session for this change", "run the fast-harness verification flow", "start my worktree dev environment", or "review this change with fast-harness."
 
 ## What's inside
 
 | Component | What it is |
 |---|---|
-| `hooks/destructive_guard.sh` | A `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
-| `hooks/session-rules.sh` | A `SessionStart` hook injecting two always-on rules: address the user by their configured name every reply (a context-drift signal), and restate complex/multi-step requests before acting so they can confirm your understanding. |
-| `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
-| `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Command: `/verify`. |
-| `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Commands: `/e2e`, `/chrome-cdp`. |
-| `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Command: `/review-loop`. |
+| `.codex-plugin/plugin.json` | Codex plugin manifest for installing the shared skills and scripts. |
+| `hooks/destructive_guard.sh` | Claude Code-only `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
+| `hooks/session-rules.sh` | Claude Code-only `SessionStart` hook injecting two always-on rules: address the user by their configured name every reply (a context-drift signal), and restate complex/multi-step requests before acting so they can confirm your understanding. |
+| `skills/sdd/` | Lightweight spec-driven development — creates durable `docs/specs/<change-id>/{spec,design,tasks}.md` plus a gitignored `.harness/<change-id>/` checkpoint/task/evidence ledger. Claude commands: `/sdd-start`, `/sdd-status`, `/sdd-finish`. |
+| `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Claude commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
+| `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Claude command: `/verify`. |
+| `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Claude commands: `/e2e`, `/chrome-cdp`. |
+| `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Claude command: `/review-loop`. |
 | `skills/clean-context/` | When to dispatch independent work (search, large reads, subtasks, review) to a **fresh sub-agent** to keep the main context clean. |
-| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into a **tracked GitHub issue** + ready-to-paste edits **to this plugin itself**. Command: `/retro` (repo via `HARNESS_RETRO_REPO`). |
-| `agents/` | A curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
+| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into a **tracked GitHub issue** + ready-to-paste edits **to this plugin itself**. Claude command: `/retro` (repo via `HARNESS_RETRO_REPO`). |
+| `agents/` | Claude Code-only curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
 
-These skills are the bespoke core — a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The review-loop and clean-context patterns absorb the best ideas from heavier harnesses (convergence-driven iteration, evidence-based rejection, fresh-context-per-unit) without their orchestration weight.
+These skills are the bespoke core — lightweight SDD recordkeeping, a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The SDD layer absorbs the useful OpenSpec shape (spec/design/tasks + execution ledger) without its full lifecycle; review-loop and clean-context absorb convergence-driven iteration, evidence-based rejection, and fresh-context-per-unit without orchestration weight.
+
+## SDD workflow
+
+Use SDD when a change is more than a one-off edit and should leave a durable trail:
+
+```bash
+/sdd-start add-billing-export
+# edit docs/specs/add-billing-export/{spec.md,design.md,tasks.md}
+# execute checkpoints while updating .harness/add-billing-export/task-log.md
+/verify
+/e2e              # when the change touches UI, login, or a real data path
+/review-loop      # before merge or for material changes
+/sdd-finish add-billing-export
+```
+
+The script behind the commands is `scripts/harness-sdd.sh`. It creates
+`docs/specs/<change-id>/` as the git-tracked spec bundle and
+`.harness/<change-id>/` as the local, gitignored execution ledger. The agent owns
+the judgment: filling the spec, deriving checkpoints, and choosing verification
+layers.
 
 ## Testing (two layers)
 
