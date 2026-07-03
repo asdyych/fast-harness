@@ -26,13 +26,25 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    reject "add more schema/checks/tests to raise rigor" unless it fixes a real
    defect.*
 
-2. **Preflight in one shot:**
+2. **Create a local review ledger.** This ledger is deterministic bookkeeping
+   only; it does not call the peer or decide correctness.
    ```bash
    HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
    if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
      echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
      exit 2
    fi
+   "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-session.sh" init \
+     --meta-goal "<one sentence goal>" \
+     --peer "<codex|gemini|claude>" \
+     --max-rounds 5
+   ```
+   Keep the returned session id. Rounds are stored under `.review-loop/`, which
+   must remain gitignored. If this review belongs to an SDD/loop session, copy a
+   short pointer to `.harness/<change-id>/evidence/review-loop.md`.
+
+3. **Preflight in one shot:**
+   ```bash
    "${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" [--scope auto|diff|branch|pr]
    ```
    In Claude Code, `CLAUDE_PLUGIN_ROOT` is available. In Codex, use
@@ -43,7 +55,7 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    One call returns scope, base, changed files, the diff, and which peer is
    available — no multi-call context gathering.
 
-3. **Send to ONE peer.** Prefer the codex MCP tool (`mcp__codex__codex`,
+4. **Send to ONE peer.** Prefer the codex MCP tool (`mcp__codex__codex`,
    `sandbox: read-only`) when available. For any shell CLI peer, use the
    deterministic wrapper rather than hand-running `codex`, `gemini`, or
    `claude`:
@@ -51,7 +63,7 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-peer.sh" \
      --peer "<codex|gemini|claude>" \
      --prompt-file "<round prompt file>" \
-     --timeout 600 \
+     --timeout 1200 \
      --log-dir ".review-loop/<session-id>/peer-round-01"
    ```
    The wrapper prints the peer's final review text to stdout and writes
@@ -63,7 +75,7 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    Ask for correctness bugs first, then simplifications — each with `file:line`
    and a severity. Pass the meta-goal from step 1.
 
-4. **Triage — you decide, not the peer. Rejection needs evidence.** Apply only
+5. **Triage — you decide, not the peer. Rejection needs evidence.** Apply only
    findings you accept. To **reject** a material finding (correctness, security,
    data-loss), attach a **Verification block** — the actual command you ran and
    its output proving the code is correct. A rejection that cites only the spec,
@@ -72,24 +84,45 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    final note. (Style / "add rigor" findings can be rejected with a one-line
    reason; this evidence bar is for material findings only.)
 
-5. **Apply accepted fixes, then re-review. Iterate to convergence.** After each
+6. **Record each round in the ledger.** After triage for a round, write a
+   compact host decision, not the full prompt or raw transcript:
+   ```bash
+   "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-session.sh" round <session-id> \
+     --decision "<host triage summary>" \
+     --result "<fixed|rejected|deferred|consensus|escalated>" \
+     --findings <n> \
+     --accepted <n> \
+     --rejected <n> \
+     --escalated "<none or unresolved item summary>" \
+     --evidence "<command or file path>"
+   ```
+
+7. **Apply accepted fixes, then re-review. Iterate to convergence.** After each
    round of fixes, run the peer again on the updated workspace. **Stop when the
    peer returns no new findings** (consensus). Multi-round is expected and good
    — it's what makes the result stable. Bound it: **default max 5 rounds**; if a
    single finding is debated **2 exchanges without resolution → escalate it**
    (don't keep arguing).
 
-6. **Each round, re-check against the meta-goal — this is the anti-drift guard.**
+8. **Each round, re-check against the meta-goal — this is the anti-drift guard.**
    Ask: *is this round's work solving the original goal, or solving complexity I
    introduced last round?* The number of rounds is not the enemy — unchecked
    constraint-adding is. The meta-goal check is what lets you run many rounds
    safely.
 
-7. **Before declaring done, name ≥1 command-checkable acceptance criterion** for
+9. **Before declaring done, name ≥1 command-checkable acceptance criterion** for
    any non-trivial change (e.g. `tsc --noEmit` clean, a specific test passes) and
    confirm it — don't ship on "looks right."
 
-8. **Final note.** Either *consensus* (peer satisfied, criterion met) or an
+10. **Render the ledger summary.**
+    ```bash
+    "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-session.sh" summary <session-id>
+    ```
+    Reference `.review-loop/<session-id>/summary.md` from the final note or SDD
+    evidence. The summary contains status, rounds, findings, host decisions,
+    accepted/rejected counts, escalated items, and evidence pointers.
+
+11. **Final note.** Either *consensus* (peer satisfied, criterion met) or an
    **Escalated Items** list: for each unresolved finding, the host position, the
    peer position, and the missing verification — for a human to decide.
 

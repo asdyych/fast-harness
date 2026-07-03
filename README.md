@@ -17,7 +17,7 @@ Add the marketplace once, then install the whole harness — this plugin plus th
 /plugin install harness-engineering-skills@fast-harness    # stone16/harness-engineering-skills (referenced upstream)
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `sdd` / `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/sdd-start`, `/sdd-status`, `/sdd-finish`, `/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
+Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `sdd` / `loop` / `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/sdd-start`, `/sdd-status`, `/sdd-finish`, `/loop-status`, `/loop-next`, `/loop-tick`, `/loop-stop`, `/loop-resume`, `/fast-harness-loop`, `/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
 
 ### Codex
 
@@ -28,7 +28,7 @@ codex plugin marketplace add .
 codex plugin add fast-harness@fast-harness
 ```
 
-Codex installs the shared `skills/` and supporting `scripts/`. It does not load Claude Code's `hooks/`, `commands/`, or `agents/` directories. Use the skills by asking for the workflow directly, for example "start an SDD session for this change", "run the fast-harness verification flow", "start my worktree dev environment", or "review this change with fast-harness."
+Codex installs the shared `skills/` and supporting `scripts/`. It does not load Claude Code's `hooks/`, `commands/`, or `agents/` directories. Use the skills by asking for the workflow directly, for example "start an SDD session for this change", "advance the fast-harness loop one round", "run the fast-harness verification flow", "start my worktree dev environment", or "review this change with fast-harness."
 
 ## What's inside
 
@@ -37,7 +37,8 @@ Codex installs the shared `skills/` and supporting `scripts/`. It does not load 
 | `.codex-plugin/plugin.json` | Codex plugin manifest for installing the shared skills and scripts. |
 | `hooks/destructive_guard.sh` | Claude Code-only `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
 | `hooks/session-rules.sh` | Claude Code-only `SessionStart` hook injecting two always-on rules: address the user by their configured name every reply (a context-drift signal), and restate complex/multi-step requests before acting so they can confirm your understanding. |
-| `skills/sdd/` | Lightweight spec-driven development — creates durable `docs/specs/<change-id>/{spec,design,tasks}.md` plus a gitignored `.harness/<change-id>/` checkpoint/task/evidence ledger. Claude commands: `/sdd-start`, `/sdd-status`, `/sdd-finish`. |
+| `skills/sdd/` | Lightweight spec-driven development — creates durable `docs/specs/<change-id>/{spec,design,tasks,learnings}.md` plus a gitignored `.harness/<change-id>/` checkpoint/task/state/evidence ledger. Claude commands: `/sdd-start`, `/sdd-status`, `/sdd-finish`. |
+| `skills/loop/` | Supervised loop execution over an SDD session — status, next-action proposal, tick, stop/resume, and bounded `/fast-harness-loop` automation. Claude commands: `/loop-status`, `/loop-next`, `/loop-tick`, `/loop-stop`, `/loop-resume`, `/fast-harness-loop`. |
 | `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Claude commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
 | `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Claude command: `/verify`. |
 | `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Claude commands: `/e2e`, `/chrome-cdp`. |
@@ -47,7 +48,7 @@ Codex installs the shared `skills/` and supporting `scripts/`. It does not load 
 | `agents/` | Claude Code-only curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
 | `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
 
-These skills are the bespoke core — lightweight SDD recordkeeping, a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The SDD layer absorbs the useful OpenSpec shape (spec/design/tasks + execution ledger) without its full lifecycle; review-loop and clean-context absorb convergence-driven iteration, evidence-based rejection, and fresh-context-per-unit without orchestration weight.
+These skills are the bespoke core — lightweight SDD recordkeeping, supervised loop execution, a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The SDD layer absorbs the useful OpenSpec shape (spec/design/tasks + execution ledger) without its full lifecycle; the loop layer adds resumable status, bounded ticks, evidence, and stop conditions; review-loop and clean-context absorb convergence-driven iteration, evidence-based rejection, and fresh-context-per-unit without orchestration weight.
 
 ## SDD workflow
 
@@ -56,7 +57,8 @@ Use SDD when a change is more than a one-off edit and should leave a durable tra
 ```bash
 /sdd-start add-billing-export
 # edit docs/specs/add-billing-export/{spec.md,design.md,tasks.md}
-# execute checkpoints while updating .harness/add-billing-export/task-log.md
+/loop-next add-billing-export
+/fast-harness-loop add-billing-export
 /verify
 /e2e              # when the change touches UI, login, or a real data path
 /review-loop      # before merge or for material changes
@@ -68,6 +70,87 @@ The script behind the commands is `scripts/harness-sdd.sh`. It creates
 `.harness/<change-id>/` as the local, gitignored execution ledger. The agent owns
 the judgment: filling the spec, deriving checkpoints, and choosing verification
 layers.
+
+Optional project config lives at `.harness/config.json` and should be committed:
+
+```json
+{
+  "sdd_language": "zh-CN",
+  "loop": {
+    "max_rounds": 10,
+    "max_no_progress_rounds": 2
+  }
+}
+```
+
+`sdd_language` supports `en` (default) and `zh-CN`. The config file is
+trackable, while per-change execution state under `.harness/<change-id>/`
+remains ignored. New sessions also create `state.md` and `loop.log.md`; the
+loop log records concise events and evidence pointers, not full prompts or
+credentials.
+
+## Loop Engineering
+
+Loop is the execution layer above SDD. SDD says what the change is; loop state
+says where the current supervised cycle is, what the next checkpoint-bound
+action is, what evidence exists, and when to stop or escalate. It is deliberately
+not a daemon, queue, or autonomous planner.
+
+In fast-harness terms, **Context** is the project state, instructions, specs,
+and evidence the agent reads; **Harness** is the reusable workflow machinery
+that constrains how work is planned, verified, and reviewed; **Loop** is the
+bounded repeated execution over one checkpoint until it progresses, stops, or
+escalates.
+
+Minimal file layout:
+
+```text
+docs/specs/<change-id>/
+  spec.md
+  design.md
+  tasks.md
+  learnings.md
+.harness/config.json              # tracked project config
+.harness/<change-id>/             # ignored local execution state
+  manifest.json
+  checkpoints.md
+  task-log.md
+  state.md
+  loop.log.md
+  evidence/
+.review-loop/                     # ignored local peer-review ledger
+```
+
+Useful commands:
+
+```bash
+/loop-status [change-id]
+/loop-next [change-id]                 # propose only; waits for confirmation
+/loop-tick <change-id> changed|unchanged
+/loop-stop <change-id> [reason]
+/loop-resume <change-id>
+/fast-harness-loop [change-id] [--yes]
+```
+
+`/fast-harness-loop` defaults to one bounded round: inspect the SDD docs and
+local state, choose the smallest next action tied to one checkpoint acceptance
+criterion, execute only non-destructive in-scope work, write evidence, update
+`state.md`, append `loop.log.md`, then tick `changed` or `unchanged`. With
+`--yes`, the agent may continue multiple safe rounds, but must stop for
+destructive or out-of-scope work, missing credentials, ambiguous requirements,
+unexpected dirty changes, inconclusive verification, review-loop stalemate,
+`max_rounds`, or `max_no_progress_rounds`.
+
+The shell scripts are deterministic bookkeeping only. `harness-sdd.sh` creates
+files and defaults; `harness-loop.sh` reports status and records
+`tick/stop/resume`; `harness-review-session.sh` records review rounds and
+summary files. Agent skills own semantic planning, code changes, test selection,
+and peer-review triage.
+
+`loop.log.md` is privacy-safe by design: record round, action, decision,
+evidence path, result, and stop reason. Do not record full prompts,
+credentials, cookies, tokens, or long raw command output; put long outputs under
+`evidence/` and summarize them.
 
 ## Testing (two layers)
 
@@ -132,7 +215,30 @@ The profile declares `MAIN_CHECKOUT`, `ENV_FILES`, `SYMLINKS`, `SERVICES` (`name
 
 ## review-loop
 
-A convergence-driven cross-model review of the current diff — the discipline of a heavy harness without its orchestration weight. `/review-loop` collects everything in one shot via `scripts/review-context.sh` (scope auto-detection: local-diff → branch → PR, plus peer availability — no multi-call context gathering), sends it to one peer (codex MCP or `gemini`/`claude` CLI), applies only the findings you accept, and **iterates until the peer has no new findings** (multi-round for stability; default max 5, escalate a finding debated 2 rounds). Rejecting a material finding requires a **Verification block** (command + output) — authority-only rejections are downgraded to "deferred." The anti-drift guard is a per-round re-check against the meta-goal, not a low round cap: review loops bias toward *adding constraints*, so the number of rounds isn't the enemy — unchecked rigor-creep is. **Rigor ≠ right.**
+A convergence-driven cross-model review of the current diff — the discipline of a heavy harness without its orchestration weight. `/review-loop` collects everything in one shot via `scripts/review-context.sh` (scope auto-detection: local-diff → branch → PR, plus peer availability — no multi-call context gathering), sends it to one peer (codex MCP or `scripts/harness-review-peer.sh` for `codex`/`gemini`/`claude` CLI), applies only the findings you accept, and **iterates until the peer has no new findings** (multi-round for stability; default max 5, escalate a finding debated 2 rounds). Rejecting a material finding requires a **Verification block** (command + output) — authority-only rejections are downgraded to "deferred." The anti-drift guard is a per-round re-check against the meta-goal, not a low round cap: review loops bias toward *adding constraints*, so the number of rounds isn't the enemy — unchecked rigor-creep is. **Rigor ≠ right.**
+
+For Claude CLI peer reviews, use `harness-review-peer.sh` rather than raw
+`claude -p`. The wrapper defaults to Claude `--bare` stream-json mode, skips
+hooks/MCP/plugin startup that can consume the whole review timeout, and records
+`meta.txt`, `raw.jsonl`, `stderr.txt`, and `claude-debug.log` under the chosen
+log dir when a call fails or times out. The default peer timeout is 1200 seconds
+(20 minutes); pass `--timeout` only when a specific round needs a different
+bound.
+
+Each review can also leave a local ledger:
+
+```bash
+scripts/harness-review-session.sh init --meta-goal "..." --peer claude
+scripts/harness-review-peer.sh --peer claude --prompt-file round-1.md --log-dir .review-loop/<session>/peer-round-01
+scripts/harness-review-session.sh round <session> --decision "..." --result fixed --findings 1 --accepted 1 --rejected 0 --evidence "..."
+scripts/harness-review-session.sh summary <session>
+```
+
+The ledger lives under `.review-loop/`, remains gitignored, and produces
+`summary.md` with status, rounds, host decisions, accepted/rejected counts,
+escalated items, and evidence pointers. For an SDD loop, reference that summary
+from `.harness/<change-id>/evidence/review-loop.md` rather than committing the
+local trace.
 
 ## Companion plugins (referenced, not vendored)
 

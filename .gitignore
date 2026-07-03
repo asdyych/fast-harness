@@ -1,3 +1,7 @@
 .DS_Store
 *.log
 .in_use/
+
+.harness/*
+!.harness/config.json
+.review-loop/

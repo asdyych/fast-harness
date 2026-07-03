@@ -5,8 +5,8 @@ description: Multi-round cross-LLM review loop on the current diff/PR (codex/gem
 Use the `review-loop` skill to review the current change.
 
 First state the meta-goal in one sentence and apply the deletion rule (if a
-change can be removed without hurting the goal, it shouldn't exist). Then run the
-single-shot preflight:
+change can be removed without hurting the goal, it shouldn't exist). Initialize
+the local review ledger:
 
 ```bash
 HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
@@ -14,6 +14,15 @@ if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
   echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
   exit 2
 fi
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-review-session.sh" init \
+  --meta-goal "<one sentence goal>" \
+  --peer "<codex|gemini|claude>" \
+  --max-rounds 5
+```
+
+Then run the single-shot preflight:
+
+```bash
 "${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" $ARGUMENTS
 ```
 
@@ -24,7 +33,7 @@ wrapper):
 "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-peer.sh" \
   --peer "<codex|gemini|claude>" \
   --prompt-file "<round prompt file>" \
-  --timeout 600 \
+  --timeout 1200 \
   --log-dir ".review-loop/<session>/peer-round-01"
 ```
 
@@ -35,4 +44,7 @@ findings you accept — rejecting a material finding requires a Verification blo
 (command + output), not just "the spec says so." Re-review after each round of
 fixes and **iterate until the peer has no new findings** (max 5 rounds; escalate
 a finding debated 2 rounds). Each round, re-check against the original goal —
-rigor ≠ right. End with consensus or an Escalated Items list.
+rigor ≠ right. After each triage round, record a compact entry with
+`scripts/harness-review-session.sh round`; at the end run
+`scripts/harness-review-session.sh summary`. End with consensus or an Escalated
+Items list and point to `.review-loop/<session>/summary.md`.

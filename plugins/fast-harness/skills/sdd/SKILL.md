@@ -21,6 +21,7 @@ docs/specs/<change-id>/
   spec.md
   design.md
   tasks.md
+  learnings.md
 ```
 
 Local, gitignored:
@@ -30,7 +31,15 @@ Local, gitignored:
   manifest.json
   checkpoints.md
   task-log.md
+  state.md
+  loop.log.md
   evidence/
+```
+
+Project config, git-tracked:
+
+```text
+.harness/config.json
 ```
 
 ## Run it
@@ -53,6 +62,28 @@ fi
 
 `change-id` must be lowercase letters, digits, dots, underscores, or hyphens.
 
+## Project config
+
+`harness-sdd.sh start` reads `.harness/config.json` when present. Supported
+keys:
+
+```json
+{
+  "sdd_language": "en",
+  "loop": {
+    "max_rounds": 10,
+    "max_no_progress_rounds": 2
+  }
+}
+```
+
+- `sdd_language`: `en` (default) or `zh-CN`.
+- `loop.max_rounds`: default loop round limit for new sessions.
+- `loop.max_no_progress_rounds`: default consecutive no-progress limit.
+
+The consuming repo should track `.harness/config.json` but ignore local execution
+state under `.harness/<change-id>/`.
+
 ## Protocol
 
 1. **Start or inspect the session.**
@@ -66,13 +97,20 @@ fi
    - `spec.md`: goal, scope, out of scope, acceptance criteria.
    - `design.md`: affected files, approach, risks, verification layers.
    - `tasks.md`: user-readable task list.
+   - `learnings.md`: durable constraints, validated patterns, mistakes to
+     avoid, and follow-up harness improvements.
    - `checkpoints.md`: agent execution slices with command-checkable or
      file-checkable acceptance.
+   - `state.md`: current loop phase, current checkpoint, next action, blockers,
+     escalation condition, and evidence pointers.
 
 3. **Execute checkpoint by checkpoint.**
    Keep `checkpoints.md` as the active execution ledger. Update `task-log.md`
    after meaningful actions, decisions, verification outputs, and skipped checks.
    Do not turn `task-log.md` into a raw shell transcript.
+   Use `loop.log.md` for concise loop events: round, action, decision, evidence,
+   result, and stop reason. Do not record full prompts, credentials, cookies, or
+   long raw command output there.
 
 4. **Use existing harness gates.**
    - Run targeted tests for touched behavior.

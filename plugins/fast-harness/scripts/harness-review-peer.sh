@@ -24,7 +24,7 @@ die() {
 
 PEER=""
 PROMPT_FILE=""
-TIMEOUT=600
+TIMEOUT=1200
 LOG_DIR=""
 
 while [[ $# -gt 0 ]]; do

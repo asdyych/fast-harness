@@ -82,6 +82,9 @@ grep -q -- '--bare' "$FAKE_CLAUDE_ARGS"
 grep -q 'review prompt' "$FAKE_CLAUDE_STDIN"
 test -f "$tmp/logs-ok/claude-debug.log"
 
+"$SCRIPT" --peer claude --prompt-file "$tmp/prompt.md" --log-dir "$tmp/logs-default-timeout" > "$tmp/default-out.txt" 2> "$tmp/default-err.txt"
+grep -q '^timeout=1200$' "$tmp/logs-default-timeout/meta.txt"
+
 EXPECT_CLAUDE_MODE=safe-mode HARNESS_REVIEW_PEER_CLAUDE_MODE=safe-mode \
   "$SCRIPT" --peer claude --prompt-file "$tmp/prompt.md" --timeout 10 --log-dir "$tmp/logs-safe" > "$tmp/safe-out.txt" 2> "$tmp/safe-err.txt"
 grep -qxF 'NO_FINDINGS: stubbed claude peer' "$tmp/safe-out.txt"
