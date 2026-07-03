@@ -17,7 +17,20 @@ fi
 "${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" $ARGUMENTS
 ```
 
-Send it to one peer (codex MCP, read-only; or `gemini`/`claude` CLI). Apply only
+Send it to one peer (codex MCP, read-only; or shell CLI through the deterministic
+wrapper):
+
+```bash
+"${HARNESS_PLUGIN_ROOT}/scripts/harness-review-peer.sh" \
+  --peer "<codex|gemini|claude>" \
+  --prompt-file "<round prompt file>" \
+  --timeout 600 \
+  --log-dir ".review-loop/<session>/peer-round-01"
+```
+
+For Claude CLI, the wrapper defaults to `--bare` stream-json mode and leaves
+`meta.txt`, `raw.jsonl`, `stderr.txt`, and `claude-debug.log` in the log dir on
+failure, so no-output timeouts are diagnosable. Apply only
 findings you accept — rejecting a material finding requires a Verification block
 (command + output), not just "the spec says so." Re-review after each round of
 fixes and **iterate until the peer has no new findings** (max 5 rounds; escalate

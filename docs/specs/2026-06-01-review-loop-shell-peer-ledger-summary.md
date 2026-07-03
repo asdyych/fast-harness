@@ -22,7 +22,11 @@ harness-review-peer.sh --peer codex|gemini|claude --prompt-file <f> [--timeout N
 
 - **codex** (verified CLI shape from stone16): `codex exec` reading the prompt from stdin, capturing the final message — run **read-only** (review = analysis, no writes). Exact sandbox/output flags confirmed against `codex exec --help` at implementation time (e.g. `--output-last-message <out>`, a read-only sandbox flag). Install hint on miss: `npm i -g @openai/codex`.
 - **gemini**: `gemini -p "$(cat <prompt>)"`.
-- **claude**: `claude -p` (headless print) reading the prompt.
+- **claude**: `claude --bare -p --output-format stream-json --verbose`
+  reading the prompt. Bare mode avoids SessionStart hooks, MCP startup, plugin
+  sync, auto-memory, and CLAUDE.md auto-discovery that can make long review
+  prompts time out with no final output. The wrapper parses the final `result`
+  event and records raw/debug logs for diagnosis.
 - Auto-fallback codex→gemini→claude if the requested CLI is absent; clear error if none. Wraps with a timeout when `timeout`/`gtimeout` exists. Prints the peer's review text to stdout.
 
 This is the "shell-call codex" path the agent can use when it wants a scriptable/repeatable invocation, or in a host without the codex MCP tool. The codex **MCP tool** remains the preferred path inside Claude Code (in-process, no extra auth).

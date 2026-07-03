@@ -44,9 +44,24 @@ into over-engineering. Output: improved code + a short consensus/escalation note
    available — no multi-call context gathering.
 
 3. **Send to ONE peer.** Prefer the codex MCP tool (`mcp__codex__codex`,
-   `sandbox: read-only`); use the `gemini` / `claude` CLI as the alternate. Ask
-   for correctness bugs first, then simplifications — each with `file:line` and a
-   severity. Pass the meta-goal from step 1.
+   `sandbox: read-only`) when available. For any shell CLI peer, use the
+   deterministic wrapper rather than hand-running `codex`, `gemini`, or
+   `claude`:
+   ```bash
+   "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-peer.sh" \
+     --peer "<codex|gemini|claude>" \
+     --prompt-file "<round prompt file>" \
+     --timeout 600 \
+     --log-dir ".review-loop/<session-id>/peer-round-01"
+   ```
+   The wrapper prints the peer's final review text to stdout and writes
+   diagnostics under the log dir. Claude runs in `--bare` stream-json mode by
+   default to avoid SessionStart hooks, MCP startup, plugin sync, auto-memory,
+   and CLAUDE.md auto-discovery from consuming the review timeout. If a machine
+   cannot use `--bare`, set `HARNESS_REVIEW_PEER_CLAUDE_MODE=safe-mode`; if
+   debugging a no-output hang, set `HARNESS_REVIEW_PEER_INCLUDE_PARTIALS=1`.
+   Ask for correctness bugs first, then simplifications — each with `file:line`
+   and a severity. Pass the meta-goal from step 1.
 
 4. **Triage — you decide, not the peer. Rejection needs evidence.** Apply only
    findings you accept. To **reject** a material finding (correctness, security,
