@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
-  "description": "An opinionated Claude Code harness: a surgical destructive-operation guard hook for bypassPermissions setups, SDD and loop workflows, a curated subagent roster, and utility skills.",
-  "version": "0.1.0",
+  "description": "The CC package of fast-harness: shared Trace Browser E2E and cross-model review, plus CC-only session and safety hooks.",
+  "version": "0.2.0",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
@@ -13,10 +13,9 @@
     "harness",
     "hooks",
     "guardrails",
-    "subagents",
     "bypass-permissions",
     "safety",
-    "sdd",
-    "loop"
+    "e2e",
+    "cross-review"
   ]
 }

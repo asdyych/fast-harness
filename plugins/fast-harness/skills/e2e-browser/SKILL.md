@@ -1,86 +1,57 @@
 ---
 name: e2e-browser
 description: |
-  Agent-driven real-browser E2E testing. Opens a fresh isolated Chrome window via
-  CDP (never touches your main Chrome), logs in with a recorded test account, and
-  drives the actual business flow like a user — capturing screenshots, console
-  errors, and failed requests as evidence. Project-agnostic: the app URL and login
-  flow come from the project, not a hardcoded provider. Use for "e2e", "browser
-  test", "实际测一下", "跑一遍 onboarding/wizard", or to verify a UI change end to
-  end in a real browser.
+  Run a real-browser E2E flow through Trace Browser and its existing fingerprint
+  profiles, then capture screenshots, console errors, and failed requests. Use
+  for "e2e", "browser test", "实际测一下", or to verify a UI/login flow end to end.
 ---
 
-# Real-browser E2E
+# Trace Browser E2E
 
-You test the app the way a user would: a real Chrome, a real login, the real
-business flow. The harness gives you an isolated browser and an account store;
-you supply the judgment about what the flow should do.
+Test the app the way a user would through Trace Browser. Reuse its managed
+fingerprint profiles and signed-in sessions instead of maintaining a second
+Chrome profile or a plaintext credential store in this plugin.
 
-## Why real browser (discipline)
+## Boundaries
 
-- **Real browser only. No Preview MCP** — its simulated env diverges from real
-  behavior on the exact paths that matter (auth, cookies, localStorage,
-  WebSocket). `tsc`/`vitest` are a pre-check, not a substitute (run `/verify`).
-- **Backend `/healthz` green does NOT prove the user can log in** — a real
-  screenshot of the post-login screen with zero console errors is the proof.
-- **Never pkill Chrome.** Use the script's `stop` (SIGTERM to its own PID only).
+- Use a real browser. Simulated previews diverge on auth, cookies, localStorage,
+  and WebSocket behavior.
+- Prefer Trace Browser. Do not launch generic Chrome while its LaunchServer is
+  available.
+- Reuse a signed-in Trace profile. If login is required, ask the user to choose
+  or prepare the appropriate profile; never print credentials.
+- A green backend health check is not proof of a working user flow.
 
 ## Protocol
 
-1. **Bring up the browser.** If the testing Chrome isn't up:
+1. Check Trace Browser LaunchServer, normally at `http://127.0.0.1:19876`:
+
    ```bash
-   HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
-   if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
-     echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
-     exit 2
-   fi
-   "${HARNESS_PLUGIN_ROOT}/scripts/harness-chrome-cdp.sh" start [--port 9222]
+   curl -fsS http://127.0.0.1:19876/api/profiles
    ```
-   In Claude Code, `CLAUDE_PLUGIN_ROOT` is available. In Codex, use
-   `CODEX_PLUGIN_ROOT` if the host provides it; otherwise derive the plugin root
-   from this `SKILL.md` source path (two directories above this skill directory)
-   and substitute that absolute path.
 
-   A fresh isolated window on a persistent profile (`~/.harness/chrome-test`).
-   Test-account logins persist there across runs, so step 3 is usually a no-op
-   after the first time.
+   When the server requires a key, read `TRACE_BROWSER_API_KEY` and optional
+   `TRACE_BROWSER_API_KEY_HEADER` from the environment. Do not print the key.
+2. Select an already-running profile whose purpose and signed-in state match the
+   task. If several profiles are plausible, ask the user rather than guessing.
+3. Launch only when needed. Use `GET /api/launch/<launchCode>` when a launch code
+   is available, otherwise `POST /api/launch` with `{"profileId":"..."}`.
+4. Read `debugPort` or `cdpUrl` from the launch response and attach Playwright or
+   another CDP-capable browser tool. A local probe helper may be used for
+   diagnostics when the project documents one, but the HTTP/CDP contract is
+   authoritative.
+5. Trace Browser RPA at `127.0.0.1:64606/trace/proto` requires an app-injected
+   IPC token. Use it only when the user explicitly requests RPA.
+6. Resolve the running app URL from project documentation or service output. Ask
+   when it cannot be discovered safely.
+7. Exercise the requested acceptance flow and capture screenshots, console
+   errors, and failed network requests. A screenshot alone is insufficient when
+   the console or network shows a failed business request.
+8. Leave profile lifecycle to Trace Browser. Do not kill the browser or mutate
+   or delete its profiles as cleanup.
 
-2. **Resolve the app URL.** Prefer the running worktree-dev frontend (the port
-   from your `.harness-dev.conf` frontend service), else its `APP_URL`, else ask.
+## Fallback
 
-3. **Get a test account.**
-   ```bash
-   HARNESS_PLUGIN_ROOT="${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
-   if [ -z "$HARNESS_PLUGIN_ROOT" ]; then
-     echo "Set HARNESS_PLUGIN_ROOT to the installed fast-harness plugin root." >&2
-     exit 2
-   fi
-   "${HARNESS_PLUGIN_ROOT}/scripts/harness-test-accounts.sh" list
-   ```
-   If the account you need isn't there, **proactively `AskUserQuestion`** to
-   record a batch — label, app URL, username, password, role, and a one-line
-   *login hint* (what kind of login the app uses). Persist via `add`. Reuse
-   across sessions. Never paste a password into the transcript beyond the actual
-   login action.
-
-4. **Attach a browser tool and drive — agent picks per task.**
-   - **Chrome MCP** (`mcp__Claude_in_Chrome__*`) for exploratory real-ops: it
-     drives the running Chrome directly. Good for "log in and click through X".
-   - **Playwright over CDP** (`mcp__plugin_playwright_*`, `connectOverCDP("http://localhost:<port>")`)
-     for a repeatable regression script.
-   Read the actual app to perform the login (it is **not** assumed to be Logto —
-   follow whatever the project uses, guided by the account's `login` hint).
-
-5. **Exercise the business flow** named by the task's acceptance criteria:
-   navigate, interact, assert. Capture **screenshots** of key states, the
-   **console** (zero errors expected), and any **failed network calls**.
-
-6. **Report with evidence**, then leave the testing profile logged in for reuse.
-   Run `stop` only when asked, or before a turn boundary if you started it just
-   for this check.
-
-## Composes with
-
-`/wt-start` (dev env up) → `/verify` (code: tsc + vitest) → `/e2e` (this) →
-`/review-loop`. This skill reuses worktree-dev's running frontend; it does not
-start dev servers itself.
+If LaunchServer is unavailable, report that fact and use an already-configured
+generic browser automation tool only when it provides an isolated session. Do
+not silently switch to the user's everyday Chrome profile.

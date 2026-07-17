@@ -1,265 +1,165 @@
 # fast-harness
 
-An opinionated coding harness, published as installable plugins for **Claude Code** and **Codex**. It bundles the **reusable, secret-free** pieces of a heavily-customized setup — the parts that make sense to share, without any personal rules, settings, memory, or credentials.
+`fast-harness` 是 `mattpocock/skills` 的轻量本地能力补充包，可在 Codex 和 CC（Claude Code）中使用，不再维护另一套规划、任务、实现或验证流程。
 
-The headline on Claude Code is the **destructive-operation guard hook**: a thin safety rail for people who run Claude Code in `bypassPermissions` mode and have therefore removed the built-in permission wall. On Codex, the shared skills and scripts install as a Codex plugin; Claude-specific hooks, slash commands, and subagent manifests remain Claude-only.
+职责划分：
 
-## Quick start
+- `mattpocock/skills` 负责工程主流程：需求澄清、spec、tickets、TDD、实现、诊断和代码审查。
+- `fast-harness` 的共享核心只保留 Trace Browser E2E 和跨模型第二意见。
+- 宿主专属能力单独适配：CC 额外提供会话规则和破坏性操作 guard；Codex 继续使用自身 sandbox、approval 和项目 `AGENTS.md`。
+- 每个项目通过自己的 `package.json`、`Makefile`、CI 和 agent instructions 定义启动与验证命令。
 
-### Claude Code
+## 安装
 
-Add the marketplace once, then install the whole harness — this plugin plus the two upstream companions it pairs with — in one go:
+### CC
 
-```
+```text
 /plugin marketplace add ch-royde/fast-harness
-/plugin install fast-harness@fast-harness                 # this plugin: guard hook + 15 agents + kill-port
-/plugin install superpowers@fast-harness                   # obra/superpowers (referenced upstream)
-/plugin install harness-engineering-skills@fast-harness    # stone16/harness-engineering-skills (referenced upstream)
+/plugin install fast-harness@fast-harness
+/plugin install mattpocock-skills@fast-harness
 ```
 
-Want only the guard + agents? Run the first two lines and stop. After install, the guard hook is active on every Bash call, the subagents are available to the `Task` tool, and the `sdd` / `loop` / `worktree-dev` / `review-loop` / `verify` / `e2e-browser` / `clean-context` / `retro` / `kill-port` skills and their slash commands (`/sdd-start`, `/sdd-status`, `/sdd-finish`, `/loop-status`, `/loop-next`, `/loop-tick`, `/loop-stop`, `/loop-resume`, `/fast-harness-loop`, `/wt-start`, `/wt-stop`, `/wt-status`, `/verify`, `/e2e`, `/chrome-cdp`, `/review-loop`, `/retro`) are usable.
+然后在每个项目首次使用 Matt 工程流程前运行：
+
+```text
+/setup-matt-pocock-skills
+```
+
+它会配置 issue tracker、triage labels、`CONTEXT.md` 和 ADR 布局。
 
 ### Codex
 
-From this repo root, add the repo-local Codex marketplace and install the plugin:
+从本仓库根目录安装 fast-harness 的 Codex 插件：
 
 ```bash
 codex plugin marketplace add .
 codex plugin add fast-harness@fast-harness
 ```
 
-Codex installs the shared `skills/` and supporting `scripts/`. It does not load Claude Code's `hooks/`, `commands/`, or `agents/` directories. Use the skills by asking for the workflow directly, for example "start an SDD session for this change", "advance the fast-harness loop one round", "run the fast-harness verification flow", "start my worktree dev environment", or "review this change with fast-harness."
-
-## What's inside
-
-| Component | What it is |
-|---|---|
-| `.codex-plugin/plugin.json` | Codex plugin manifest for installing the shared skills and scripts. |
-| `hooks/destructive_guard.sh` | Claude Code-only `PreToolUse` Bash guard that blocks **only** irreversible / blast-radius commands and lets every routine command through. |
-| `hooks/session-rules.sh` | Claude Code-only `SessionStart` hook injecting two always-on rules: address the user by their configured name every reply (a context-drift signal), and restate complex/multi-step requests before acting so they can confirm your understanding. |
-| `skills/sdd/` | Lightweight spec-driven development — creates durable `docs/specs/<change-id>/{spec,design,tasks,learnings}.md` plus a gitignored `.harness/<change-id>/` checkpoint/task/state/evidence ledger. Claude commands: `/sdd-start`, `/sdd-status`, `/sdd-finish`. |
-| `skills/loop/` | Supervised loop execution over an SDD session — status, next-action proposal, tick, stop/resume, and bounded `/fast-harness-loop` automation. Claude commands: `/loop-status`, `/loop-next`, `/loop-tick`, `/loop-stop`, `/loop-resume`, `/fast-harness-loop`. |
-| `skills/worktree-dev/` | Profile-driven manager for a per-worktree dev environment — copy env both ends, symlink deps, launch the service trio, health-check, tear down. Claude commands: `/wt-start`, `/wt-stop`, `/wt-status`. |
-| `skills/verify/` | Code-level green gate — frontend `tsc --noEmit` + `vitest` coverage + optional backend tests, project-agnostic via `.harness-dev.conf`. Claude command: `/verify`. |
-| `skills/e2e-browser/` | Agent-driven **real-browser** E2E — an isolated CDP Chrome window (never touches your main Chrome), login with a recorded test account, drive the actual business flow, capture evidence. Claude commands: `/e2e`, `/chrome-cdp`. |
-| `skills/review-loop/` | A multi-round cross-LLM review loop (codex/gemini peer, single-shot preflight, iterate to convergence, evidence-based rejects) with a built-in "rigor ≠ right" anti-drift discipline. Claude command: `/review-loop`. |
-| `skills/clean-context/` | When to dispatch independent work (search, large reads, subtasks, review) to a **fresh sub-agent** to keep the main context clean. |
-| `skills/retro/` | A lightweight retrospective that turns recurring harness friction (3+ occurrences) into a **tracked GitHub issue** + ready-to-paste edits **to this plugin itself**. Claude command: `/retro` (repo via `HARNESS_RETRO_REPO`). |
-| `agents/` | Claude Code-only curated roster of 15 subagents (architect, code-reviewer, security-reviewer, tdd-guide, database-reviewer, e2e-runner, …). |
-| `skills/kill-port/` | A small utility skill to free a port that's stuck in use. |
-
-These skills are the bespoke core — lightweight SDD recordkeeping, supervised loop execution, a worktree-per-task dev ritual, a two-layer testing story, a cross-model review discipline, context hygiene, and a self-improvement loop distilled from heavy daily use, rather than a wrapped generic framework. The SDD layer absorbs the useful OpenSpec shape (spec/design/tasks + execution ledger) without its full lifecycle; the loop layer adds resumable status, bounded ticks, evidence, and stop conditions; review-loop and clean-context absorb convergence-driven iteration, evidence-based rejection, and fresh-context-per-unit without orchestration weight.
-
-## SDD workflow
-
-Use SDD when a change is more than a one-off edit and should leave a durable trail:
+Matt 当前没有原生 Codex 插件，使用其官方推荐的 Agent Skills 安装方式：
 
 ```bash
-/sdd-start add-billing-export
-# edit docs/specs/add-billing-export/{spec.md,design.md,tasks.md}
-/loop-next add-billing-export
-/fast-harness-loop add-billing-export
-/verify
-/e2e              # when the change touches UI, login, or a real data path
-/review-loop      # before merge or for material changes
-/sdd-finish add-billing-export
+npx skills@latest add mattpocock/skills
 ```
 
-The script behind the commands is `scripts/harness-sdd.sh`. It creates
-`docs/specs/<change-id>/` as the git-tracked spec bundle and
-`.harness/<change-id>/` as the local, gitignored execution ledger. The agent owns
-the judgment: filling the spec, deriving checkpoints, and choosing verification
-layers.
+安装时选择 Codex 和需要的 skills，并包含 `setup-matt-pocock-skills`。随后在目标项目中运行一次 setup skill。
 
-Optional project config lives at `.harness/config.json` and should be committed:
+两个宿主使用同一组共享 skills：
 
-```json
-{
-  "sdd_language": "zh-CN",
-  "loop": {
-    "max_rounds": 10,
-    "max_no_progress_rounds": 2
-  }
-}
-```
+| 能力 | Codex | CC |
+|---|---|---|
+| Matt 工程流程 | 直接调用已安装 skill | 使用 `/skill-name` |
+| Trace Browser E2E | 调用 `e2e-browser` | `e2e-browser` 或 `/e2e` |
+| 跨模型复核 | 调用 `cross-review` | `cross-review` 或 `/cross-review` |
+| Session rules / destructive guard | 项目规则与宿主权限机制 | plugin hooks |
 
-`sdd_language` supports `en` (default) and `zh-CN`. The config file is
-trackable, while per-change execution state under `.harness/<change-id>/`
-remains ignored. New sessions also create `state.md` and `loop.log.md`; the
-loop log records concise events and evidence pointers, not full prompts or
-credentials.
+## 工程主流程
 
-## Loop Engineering
-
-Loop is the execution layer above SDD. SDD says what the change is; loop state
-says where the current supervised cycle is, what the next checkpoint-bound
-action is, what evidence exists, and when to stop or escalate. It is deliberately
-not a daemon, queue, or autonomous planner.
-
-In fast-harness terms, **Context** is the project state, instructions, specs,
-and evidence the agent reads; **Harness** is the reusable workflow machinery
-that constrains how work is planned, verified, and reviewed; **Loop** is the
-bounded repeated execution over one checkpoint until it progresses, stops, or
-escalates.
-
-Minimal file layout:
+fast-harness 不改变 Matt skills 的流程：
 
 ```text
-docs/specs/<change-id>/
-  spec.md
-  design.md
-  tasks.md
-  learnings.md
-.harness/config.json              # tracked project config
-.harness/<change-id>/             # ignored local execution state
-  manifest.json
-  checkpoints.md
-  task-log.md
-  state.md
-  loop.log.md
-  evidence/
-.review-loop/                     # ignored local peer-review ledger
+grill-with-docs
+  -> to-spec
+  -> to-tickets          # 多 session 工作
+  -> implement           # 内部使用 tdd，最后调用 code-review
+  -> 项目原生验证命令
+  -> cross-review        # 重要变更按需
+  -> e2e-browser         # UI、登录或真实数据路径按需
 ```
 
-Useful commands:
+小任务可以从 `implement` 或 `tdd` 直接开始；疑难 bug 使用 `diagnosing-bugs`。流程选择不明确时运行 `ask-matt`。
+
+Matt 的 `implement` 上游默认会创建 commit。如果你采用“只有用户显式要求才 commit”的约束，CC 安装 fast-harness 后由 SessionStart rule 注入；Codex 在项目 `AGENTS.md` 中声明同一规则。
+
+## 保留能力
+
+### CC 会话规则
+
+CC 的 `SessionStart` hook 在 startup、clear 和 compact 后注入四条规则：
+
+1. 每次回复以已配置的用户名开头，作为上下文漂移信号。
+2. 复杂或多步骤任务先复述目标、范围和交付物，等待确认后再执行。
+3. 没有当前变更的新鲜命令输出，不得宣称修复、测试通过或完成。
+4. 只有用户显式要求时才创建或 amend commit。
+
+配置称呼：
 
 ```bash
-/loop-status [change-id]
-/loop-next [change-id]                 # propose only; waits for confirmation
-/loop-tick <change-id> changed|unchanged
-/loop-stop <change-id> [reason]
-/loop-resume <change-id>
-/fast-harness-loop [change-id] [--yes]
+"<plugin-root>/scripts/harness-identity.sh" set "royde"
 ```
 
-`/fast-harness-loop` defaults to one bounded round: inspect the SDD docs and
-local state, choose the smallest next action tied to one checkpoint acceptance
-criterion, execute only non-destructive in-scope work, write evidence, update
-`state.md`, append `loop.log.md`, then tick `changed` or `unchanged`. With
-`--yes`, the agent may continue multiple safe rounds, but must stop for
-destructive or out-of-scope work, missing credentials, ambiguous requirements,
-unexpected dirty changes, inconclusive verification, review-loop stalemate,
-`max_rounds`, or `max_no_progress_rounds`.
+也可以设置 `HARNESS_USER_NAME`。
 
-The shell scripts are deterministic bookkeeping only. `harness-sdd.sh` creates
-files and defaults; `harness-loop.sh` reports status and records
-`tick/stop/resume`; `harness-review-session.sh` records review rounds and
-summary files. Agent skills own semantic planning, code changes, test selection,
-and peer-review triage.
+### CC 破坏性操作 guard
 
-`loop.log.md` is privacy-safe by design: record round, action, decision,
-evidence path, result, and stop reason. Do not record full prompts,
-credentials, cookies, tokens, or long raw command output; put long outputs under
-`evidence/` and summarize them.
+CC 的 `PreToolUse` hook 只拦截不可逆或大爆炸半径的 Bash 操作，包括：
 
-## Testing (two layers)
+- cloud secret/resource delete；
+- `terraform` / `tofu destroy`；
+- namespace、PV/PVC、deployment、statefulset、secret 等高影响 `kubectl delete`；
+- `alembic downgrade`、`DROP` 和 `TRUNCATE`；
+- 针对 `/`、`~`、`$HOME` 等根路径的灾难性 `rm -rf`。
 
-Project-agnostic — the harness supplies the mechanism; each repo supplies its app URL, login flow, accounts, and test commands via `.harness-dev.conf` + a gitignored account store.
-
-- **Code level — `/verify`:** `npx tsc --noEmit` + `npx vitest run --coverage` (and an optional backend test command). Fast, deterministic; necessary but not sufficient.
-- **E2E — `/e2e`:** opens a fresh **isolated** Chrome window with CDP enabled (`/chrome-cdp`; never relaunches or kills your main Chrome — separate persistent profile, stopped by SIGTERM to its own PID), logs in with a recorded test account, and drives the real business flow. The agent picks the browser tool per task — Chrome MCP for exploratory, Playwright `connectOverCDP` for repeatable — and the login is whatever the project actually uses (not hardcoded to any provider). Real browser only; a green backend `/healthz` is not proof the user can log in.
-
-Test accounts live in a **gitignored, `chmod 600`** `.harness/test-accounts.json` per repo (`scripts/harness-test-accounts.sh`). The `e2e-browser` skill proactively asks you to record a batch the first time, then reuses them. Plaintext credentials never leave your machine and are never committed.
-
-Typical chain: `/wt-start` → `/verify` → `/e2e` → `/review-loop`.
-
-## The guard hook
-
-Claude Code's permission prompt is the thing standing between a model-issued command and your shell. If you run with `defaultMode: bypassPermissions` (for speed), that wall is gone — a single mistaken destructive command goes straight to the wire. This hook re-adds a **narrow, high-signal** rail for the operations that are both *irreversible* and *never part of a routine fast loop*.
-
-**Blocks** (each is irreversible / blast-radius):
-
-- `gcloud secrets delete` / `versions destroy`, `gcloud {sql,clusters,redis,compute} delete`
-- `az {group,aks,postgres,redis,keyvault} delete`
-- `terraform` / `tofu destroy`
-- `kubectl delete {namespace,pvc,pv,deployment,statefulset,secret,-f}` — even inside `az aks command invoke "…"` or `gcloud … -- kubectl …`
-- `alembic downgrade`, and `DROP TABLE/DATABASE/SCHEMA` / `TRUNCATE` via a DB client
-- catastrophic `rm -rf /`, `~`, `$HOME`, `/*`, `--no-preserve-root`
-
-**Always allowed** (your fast loop, untouched): `kubectl set image|rollout|patch|exec`, `kubectl delete pod|job`, `gcloud secrets versions add`, `terraform apply|plan`, `git worktree remove`, `rm -rf node_modules`, reading/grepping commands that merely *mention* a blocked phrase needs the marker (the guard matches command text — fail-safe by design).
-
-**Bypass** — when you genuinely intend a blocked op, append the literal marker to the command:
+确实需要执行时，在命令中加入显式确认标记：
 
 ```bash
 terraform destroy -auto-approve  #DESTRUCTIVE-OK
 ```
 
-The pattern lists are grouped A–E with comments inside the hook; tune to taste. Design rule: *block only what you can't undo* — a noisy guard gets disabled, which is worse than a narrow one.
+这两个 hooks 是宿主适配器，不属于共享 skill 协议。Codex 使用自身 sandbox、approval 和 `AGENTS.md` 规则。
 
-## Session rules
+### Trace Browser E2E
 
-A plugin can't edit your `CLAUDE.md`, but a `SessionStart` hook can inject context into every session — that's how `hooks/session-rules.sh` ships two always-on rules:
+Codex 和 CC 都可调用 `e2e-browser`；CC 另有 `/e2e` 命令别名。该能力优先连接本地 Trace Browser LaunchServer：
 
-1. **Address you by name every reply.** A small thing that doubles as a context-drift signal — if the agent stops using your name, it's a tell that it lost the thread.
-2. **Restate complex requests before acting.** For any non-trivial / multi-step ask, the agent restates the goal, scope, and deliverable in a sentence and waits for your confirmation — catching a misunderstanding before it costs work.
-
-Set your name once (stored globally at `~/.harness/identity`):
-
-```bash
-"$(...)/scripts/harness-identity.sh" set "your-name"      # or: export HARNESS_USER_NAME=your-name
+```text
+GET  http://127.0.0.1:19876/api/profiles
+GET  http://127.0.0.1:19876/api/launch/<launchCode>
+POST http://127.0.0.1:19876/api/launch
 ```
 
-If no name is set, the injected rule tells the agent to ask you on its first reply and offer to save it. These are *additional context*, lower priority than your own `CLAUDE.md` — they never override your instructions.
+从 launch 响应读取 `debugPort` 或 `cdpUrl`，再通过 Playwright 或其他 CDP 工具驱动真实业务流程。技能复用 Trace Browser 管理的指纹 profile 和已登录 session，不再维护独立 Chrome profile 或 plaintext test-account store。
 
-## worktree-dev
+Trace Browser RPA 位于 `127.0.0.1:64606/trace/proto`，需要应用注入的 IPC token；只有用户显式要求 RPA 时才使用。
 
-A worktree-per-task workflow repeats the same setup ritual every time. `scripts/harness-worktree-dev.sh` drives it from a per-repo profile (`.harness-dev.conf`):
+### Cross Review
 
-```bash
-/wt-start    # copy env (both ends) + symlink .venv/node_modules + free ports + start services + health-check
-/wt-status   # which services are running, which ports are up
-/wt-stop     # kill service PIDs + free ports — worktree left intact (no implicit removal)
+Codex 和 CC 都可调用 `cross-review`；CC 另有 `/cross-review` 命令别名。它是 Matt `code-review` 之后的可选异模型第二意见，不是另一套 review 工作流。
+
+它会：
+
+1. 使用 `review-context.sh` 一次收集 diff、base、文件列表和 peer 可用性。
+2. 使用 `harness-review-peer.sh --peer auto` 调用不同模型的 Codex、CC 或 Gemini peer。
+3. 只接收有 `file:line`、严重级别和具体失败场景的实质发现。
+4. 修复后最多复查一次，然后输出共识或未决项。
+
+在 Codex 中，`auto` 优先选择 CC；在其他宿主中优先选择 Codex。自动探测不可用时可设置 `HARNESS_HOST=codex|cc`。这里的 `cc` 是公开宿主标签，脚本会通过版本信息识别真正的 CC CLI，不会把系统 C 编译器误当成 reviewer。Codex peer 使用 read-only sandbox，CC peer 使用 plan mode 且禁用工具。CLI 超时或无最终结果时，wrapper 会保留诊断日志，但不会在仓库中创建 review ledger。
+
+## 目录
+
+```text
+plugins/fast-harness/
+  .claude-plugin/plugin.json
+  .codex-plugin/plugin.json
+  hooks/
+    hooks.json
+    destructive_guard.sh
+    session-rules.sh
+  commands/
+    e2e.md
+    cross-review.md
+  skills/
+    e2e-browser/SKILL.md
+    cross-review/SKILL.md
+  scripts/
+    harness-identity.sh
+    review-context.sh
+    harness-review-peer.sh
 ```
 
-The profile declares `MAIN_CHECKOUT`, `ENV_FILES`, `SYMLINKS`, `SERVICES` (`name|port|subdir|command`), and `HEALTH` — see `skills/worktree-dev/example.harness-dev.conf`. The skill carries the judgment the script can't: copy *all* env files (a missing frontend `VITE_*` is silently `undefined`), restart Vite after env edits (it snapshots env at startup), and never treat a green backend `/healthz` as proof the frontend can log in.
+## 0.2 迁移
 
-## review-loop
-
-A convergence-driven cross-model review of the current diff — the discipline of a heavy harness without its orchestration weight. `/review-loop` collects everything in one shot via `scripts/review-context.sh` (scope auto-detection: local-diff → branch → PR, plus peer availability — no multi-call context gathering), sends it to one peer (codex MCP or `scripts/harness-review-peer.sh` for `codex`/`gemini`/`claude` CLI), applies only the findings you accept, and **iterates until the peer has no new findings** (multi-round for stability; default max 5, escalate a finding debated 2 rounds). Rejecting a material finding requires a **Verification block** (command + output) — authority-only rejections are downgraded to "deferred." The anti-drift guard is a per-round re-check against the meta-goal, not a low round cap: review loops bias toward *adding constraints*, so the number of rounds isn't the enemy — unchecked rigor-creep is. **Rigor ≠ right.**
-
-For Claude CLI peer reviews, use `harness-review-peer.sh` rather than raw
-`claude -p`. The wrapper defaults to Claude `--bare` stream-json mode, skips
-hooks/MCP/plugin startup that can consume the whole review timeout, and records
-`meta.txt`, `raw.jsonl`, `stderr.txt`, and `claude-debug.log` under the chosen
-log dir when a call fails or times out. The default peer timeout is 1200 seconds
-(20 minutes); pass `--timeout` only when a specific round needs a different
-bound.
-
-Each review can also leave a local ledger:
-
-```bash
-scripts/harness-review-session.sh init --meta-goal "..." --peer claude
-scripts/harness-review-peer.sh --peer claude --prompt-file round-1.md --log-dir .review-loop/<session>/peer-round-01
-scripts/harness-review-session.sh round <session> --decision "..." --result fixed --findings 1 --accepted 1 --rejected 0 --evidence "..."
-scripts/harness-review-session.sh summary <session>
-```
-
-The ledger lives under `.review-loop/`, remains gitignored, and produces
-`summary.md` with status, rounds, host decisions, accepted/rejected counts,
-escalated items, and evidence pointers. For an SDD loop, reference that summary
-from `.harness/<change-id>/evidence/review-loop.md` rather than committing the
-local trace.
-
-## Companion plugins (referenced, not vendored)
-
-The last two install lines in [Quick start](#quick-start) pull in third-party plugins this harness is designed to pair with. They are **referenced from their upstream repos** — never copied into this one — so they always track their own maintainers and stay current:
-
-- **superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) — TDD, brainstorming, systematic debugging, and collaboration skills.
-- **harness-engineering-skills** ([stone16/harness-engineering-skills](https://github.com/stone16/harness-engineering-skills)) — cross-LLM `review-loop` and the cybernetics `harness` orchestrator.
-
-## Subagents
-
-`architect` · `bug-analyzer` · `build-error-resolver` · `claude-md-guardian` · `code-reviewer` · `database-reviewer` · `dev-planner` · `doc-updater` · `e2e-runner` · `planner` · `refactor-cleaner` · `security-reviewer` · `story-generator` · `tdd-guide` · `ui-sketcher`
-
-## What's deliberately NOT here
-
-This plugin is the *mechanical* half of a harness. It intentionally excludes the personal half, which you should configure yourself in your own `~/.claude/`:
-
-- **`settings.json` toggles** (`model`, `bypassPermissions`, `env`) — a plugin can't and shouldn't set your model or permission mode.
-- **Global rules / `CLAUDE.md` instructions** — personal working discipline; bring your own.
-- **Memory, MCP definitions, session history** — personal and/or secret-bearing.
-
-If you want the guard but run with the normal permission prompt, it still works — it's just redundant with the prompt for the few commands it covers.
+`0.2.0` 是破坏性精简版本。迁移细节和旧入口映射见 [`docs/migration-0.2.md`](docs/migration-0.2.md)。
 
 ## License
 

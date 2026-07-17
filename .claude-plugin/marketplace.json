@@ -5,28 +5,22 @@
     "url": "https://github.com/ch-royde"
   },
   "metadata": {
-    "description": "A personal Claude Code harness, published as one installable plugin — the reusable, secret-free pieces of a heavily-customized setup (destructive-op guard hook, subagent roster, kill-port skill).",
-    "version": "0.1.0"
+    "description": "A thin local-capabilities companion to Matt Pocock's engineering skills.",
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "fast-harness",
-      "description": "A surgical destructive-operation guard hook for bypassPermissions setups, a curated subagent roster, and a kill-port utility skill.",
-      "version": "0.1.0",
+      "description": "Personal session rules, a destructive-operation guard, Trace Browser E2E guidance, and cross-model review helpers.",
+      "version": "0.2.0",
       "source": "./plugins/fast-harness",
       "category": "workflow"
     },
     {
-      "name": "superpowers",
-      "description": "Core skills library by obra (Jesse Vincent): TDD, brainstorming, systematic debugging, collaboration patterns. Referenced from upstream — not vendored.",
-      "source": { "source": "github", "repo": "obra/superpowers" },
+      "name": "mattpocock-skills",
+      "description": "Matt Pocock's composable engineering flow: grilling, specs, tickets, TDD, implementation, diagnosis, and code review. Referenced from upstream, not vendored.",
+      "source": { "source": "github", "repo": "mattpocock/skills" },
       "category": "workflow"
-    },
-    {
-      "name": "harness-engineering-skills",
-      "description": "stone16's cross-LLM review-loop + cybernetics Planner→Generator→Evaluator→Retro harness orchestration. Referenced from upstream — not vendored.",
-      "source": { "source": "git-subdir", "url": "https://github.com/stone16/harness-engineering-skills.git", "path": "plugins/harness-engineering-skills", "ref": "main" },
-      "category": "code-quality"
     }
   ]
 }

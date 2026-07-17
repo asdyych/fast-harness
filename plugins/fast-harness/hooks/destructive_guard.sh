@@ -57,6 +57,7 @@ except Exception:
 
 [[ -z "$command" ]] && exit 0
 
+# Return success when the Bash command text matches one guarded operation class.
 match() { echo "$command" | grep -qiE "$1"; }
 
 reason=""

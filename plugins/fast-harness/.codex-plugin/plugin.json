@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
-  "version": "0.1.0",
-  "description": "An opinionated coding harness with SDD, supervised loop execution, project-agnostic verification, browser E2E, worktree dev helpers, review-loop discipline, and safety-oriented workflows.",
+  "version": "0.2.0",
+  "description": "A thin local-capabilities companion with Trace Browser E2E and cross-model review helpers.",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
@@ -13,18 +13,14 @@
     "harness",
     "codex",
     "skills",
-    "worktree",
-    "verification",
     "e2e",
-    "review",
-    "sdd",
-    "loop"
+    "cross-review"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "fast-harness",
-    "shortDescription": "Reusable coding harness skills for SDD, loop execution, verification, E2E, worktrees, review, and safety.",
-    "longDescription": "fast-harness packages reusable, secret-free workflow skills for local development: lightweight SDD, supervised loop execution, per-worktree service setup, code-level verification, real-browser E2E, cross-model review discipline, context hygiene, retrospective improvement, and small utilities. Claude Code-only hooks and slash commands remain available through the Claude plugin manifest; Codex installs the shared skills and supporting scripts.",
+    "shortDescription": "Trace Browser E2E and cross-model review helpers.",
+    "longDescription": "fast-harness complements Matt Pocock's engineering skills with two cross-host local capabilities: real-browser E2E through Trace Browser and a bounded cross-model second-opinion review. Host-specific hooks are kept outside the shared skill contract.",
     "developerName": "ch-royde",
     "category": "Productivity",
     "capabilities": [
@@ -33,10 +29,8 @@
     ],
     "websiteURL": "https://github.com/ch-royde/fast-harness",
     "defaultPrompt": [
-      "Run the fast-harness verification flow.",
-      "Advance this SDD loop one round.",
-      "Start my worktree dev environment.",
-      "Review this change with fast-harness."
+      "Run the real-browser E2E flow through Trace Browser.",
+      "Get a cross-model second review of this change."
     ],
     "brandColor": "#2563EB"
   }

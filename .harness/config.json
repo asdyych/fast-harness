@@ -1,7 +1,0 @@
-{
-  "sdd_language": "zh-CN",
-  "loop": {
-    "max_rounds": 10,
-    "max_no_progress_rounds": 2
-  }
-}

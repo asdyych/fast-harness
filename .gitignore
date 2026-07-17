@@ -2,6 +2,6 @@
 *.log
 .in_use/
 
-.harness/*
-!.harness/config.json
+# Local state left by fast-harness versions before 0.2.0.
+.harness/
 .review-loop/

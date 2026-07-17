@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # session-rules.sh — SessionStart hook for fast-harness.
 #
-# Injects two always-on behavioral rules into every session (startup/clear/compact):
+# Injects a small set of always-on behavioral rules into every session
+# (startup/clear/compact):
 #   1) Address the user by their configured name at the start of every response —
 #      a context-awareness signal (drop it and you've likely lost the thread).
-#   2) Restate complex / multi-step requests before acting, so the user can
-#      confirm the agent understood correctly.
+#   2) Restate complex / multi-step requests before acting.
+#   3) Require fresh command evidence before claiming verification success.
+#   4) Create commits only when the user explicitly requests one.
 #
 # These are *additional context*, not user instructions — the user's own
 # CLAUDE.md always takes precedence. Name lookup: HARNESS_USER_NAME env, else the
@@ -31,6 +33,10 @@ rules="<fast-harness-rules>
 ${name_rule}
 
 **Restate complex requests before acting.** For any non-trivial or multi-step request, first restate it back in one or two sentences — the goal, the scope, and the deliverable — and let the user confirm you understood correctly before starting work. If you cannot restate it confidently, ask one clarifying question instead of assuming. This catches a misunderstanding before it costs real work.
+
+**Evidence before completion claims.** Do not claim that code is fixed, tests pass, or work is complete without fresh command output from the current change. State clearly when a relevant check was not run.
+
+**Commit only on explicit request.** Do not create or amend a git commit unless the user explicitly asks for a commit. Preparing code for review is not permission to commit it.
 </fast-harness-rules>"
 
 # Emit the Claude Code SessionStart additionalContext as JSON (json.dumps handles
