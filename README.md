@@ -5,7 +5,7 @@
 职责划分：
 
 - `mattpocock/skills` 负责工程主流程：需求澄清、spec、tickets、TDD、实现、诊断和代码审查。
-- `fast-harness` 的共享核心只保留 Trace Browser E2E 和跨模型第二意见。
+- `fast-harness` 的共享核心只保留分批 checkpoint commits、Trace Browser E2E 和跨模型第二意见。
 - 宿主专属能力单独适配：CC 额外提供会话规则和破坏性操作 guard；Codex 继续使用自身 sandbox、approval 和项目 `AGENTS.md`。
 - 每个项目通过自己的 `package.json`、`Makefile`、CI 和 agent instructions 定义启动与验证命令。
 
@@ -49,6 +49,7 @@ npx skills@latest add mattpocock/skills
 | 能力 | Codex | CC |
 |---|---|---|
 | Matt 工程流程 | 直接调用已安装 skill | 使用 `/skill-name` |
+| 分批本地提交 | 调用 `checkpoint-commits` | `checkpoint-commits` 或 SessionStart rule |
 | Trace Browser E2E | 调用 `e2e-browser` | `e2e-browser` 或 `/e2e` |
 | 跨模型复核 | 调用 `cross-review` | `cross-review` 或 `/cross-review` |
 | Session rules / destructive guard | 项目规则与宿主权限机制 | plugin hooks |
@@ -69,7 +70,11 @@ grill-with-docs
 
 小任务可以从 `implement` 或 `tdd` 直接开始；疑难 bug 使用 `diagnosing-bugs`。流程选择不明确时运行 `ask-matt`。
 
-Matt 的 `implement` 上游默认会创建 commit。如果你采用“只有用户显式要求才 commit”的约束，CC 安装 fast-harness 后由 SessionStart rule 注入；Codex 在项目 `AGENTS.md` 中声明同一规则。
+Matt 的 `implement` 上游只要求完成后提交，没有定义长任务的中间提交策略。fast-harness 通过共享 `checkpoint-commits` skill 和 CC SessionStart rule 补充以下契约：实现与修 bug 默认授权在当前分支创建本地提交；每完成一个可独立理解、已通过相关检查的行为切片就提交一次，不把大段已验证 diff 留到任务末尾。用户或仓库明确要求不提交时，以该要求为准。
+
+提交前必须检查工作树，只暂存当前任务的文件或 hunks，不得卷入用户已有改动。每个 commit 应可构建、可回退，消息描述已建立的行为或约束，不使用 `WIP`。小型单步任务可以只做一个最终 commit；大任务按行为边界分批，而不是按行数或时间机械切分。
+
+这项默认授权只覆盖本地新 commit。`push`、创建 PR、`amend`、`rebase`、`squash`、`reset`、force-push 和其他历史改写仍需用户明确授权。
 
 ## 保留能力
 
@@ -80,7 +85,7 @@ CC 的 `SessionStart` hook 在 startup、clear 和 compact 后注入四条规则
 1. 每次回复以已配置的用户名开头，作为上下文漂移信号。
 2. 复杂或多步骤任务先复述目标、范围和交付物，等待确认后再执行。
 3. 没有当前变更的新鲜命令输出，不得宣称修复、测试通过或完成。
-4. 只有用户显式要求时才创建或 amend commit。
+4. 实现任务按已验证的行为切片创建本地 checkpoint commits；隔离用户已有改动，且未经明确授权不 push 或改写历史。
 
 配置称呼：
 

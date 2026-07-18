@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
-  "version": "0.2.0",
-  "description": "A thin local-capabilities companion with Trace Browser E2E and cross-model review helpers.",
+  "version": "0.2.1",
+  "description": "A thin companion with checkpoint commit, Trace Browser E2E, and cross-model review guidance.",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "fast-harness",
-    "shortDescription": "Trace Browser E2E and cross-model review helpers.",
-    "longDescription": "fast-harness complements Matt Pocock's engineering skills with two cross-host local capabilities: real-browser E2E through Trace Browser and a bounded cross-model second-opinion review. Host-specific hooks are kept outside the shared skill contract.",
+    "shortDescription": "Checkpoint commits, Trace Browser E2E, and cross-model review.",
+    "longDescription": "fast-harness complements Matt Pocock's engineering skills with a cross-host checkpoint commit policy, real-browser E2E through Trace Browser, and a bounded cross-model second-opinion review. Host-specific hooks are kept outside the shared skill contract.",
     "developerName": "ch-royde",
     "category": "Productivity",
     "capabilities": [
@@ -29,6 +29,7 @@
     ],
     "websiteURL": "https://github.com/ch-royde/fast-harness",
     "defaultPrompt": [
+      "Implement this work with small verified local checkpoint commits.",
       "Run the real-browser E2E flow through Trace Browser.",
       "Get a cross-model second review of this change."
     ],

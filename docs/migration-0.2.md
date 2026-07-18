@@ -48,7 +48,7 @@ CC 可从 fast-harness marketplace 同时安装：
 /plugin install mattpocock-skills@fast-harness
 ```
 
-Matt 当前尚未提供原生 Codex plugin。Codex 单独安装 fast-harness plugin，并通过 Agent Skills installer 安装 Matt skills。两个宿主使用相同的共享 `e2e-browser` 和 `cross-review` 契约：
+Matt 当前尚未提供原生 Codex plugin。Codex 单独安装 fast-harness plugin，并通过 Agent Skills installer 安装 Matt skills。两个宿主使用相同的共享 `checkpoint-commits`、`e2e-browser` 和 `cross-review` 契约：
 
 ```bash
 npx skills@latest add mattpocock/skills
@@ -64,4 +64,4 @@ npx skills@latest add mattpocock/skills
 - commit policy；
 - 项目级编码和文档规则。
 
-这些内容应放在项目脚本、CI、`AGENTS.md`、`CLAUDE.md` 或 Matt setup 生成的 `docs/agents/` 中，而不是重新加入 fast-harness 的通用流程层。
+这些内容应放在项目脚本、CI、`AGENTS.md`、`CLAUDE.md` 或 Matt setup 生成的 `docs/agents/` 中，而不是重新加入 fast-harness 的通用流程层。fast-harness `0.2.1` 只提供一个跨项目默认值：实现任务应按已验证的行为切片创建本地 checkpoint commits；项目可以明确覆盖它。该默认值不授权 push、PR 或任何历史改写。

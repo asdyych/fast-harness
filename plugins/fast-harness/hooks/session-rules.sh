@@ -7,7 +7,8 @@
 #      a context-awareness signal (drop it and you've likely lost the thread).
 #   2) Restate complex / multi-step requests before acting.
 #   3) Require fresh command evidence before claiming verification success.
-#   4) Create commits only when the user explicitly requests one.
+#   4) Create verified local checkpoint commits during implementation while
+#      keeping push and history rewriting behind explicit user approval.
 #
 # These are *additional context*, not user instructions — the user's own
 # CLAUDE.md always takes precedence. Name lookup: HARNESS_USER_NAME env, else the
@@ -36,7 +37,7 @@ ${name_rule}
 
 **Evidence before completion claims.** Do not claim that code is fixed, tests pass, or work is complete without fresh command output from the current change. State clearly when a relevant check was not run.
 
-**Commit only on explicit request.** Do not create or amend a git commit unless the user explicitly asks for a commit. Preparing code for review is not permission to commit it.
+**Checkpoint commits during implementation.** For coding and bug-fix tasks, local commits on the current branch are authorized by default. Do not leave a large verified diff uncommitted until the end: after each coherent, independently understandable milestone, run the relevant checks and create a focused checkpoint commit. Inspect the worktree first and stage only this task's changes; never absorb, revert, or overwrite unrelated user work. Keep each commit buildable and revertable, avoid WIP commits, and use one final commit only when the task is genuinely a single small step. A user or repository rule that says not to commit takes precedence. Never push, amend, rebase, squash, reset, or otherwise rewrite history without explicit user authorization.
 </fast-harness-rules>"
 
 # Emit the Claude Code SessionStart additionalContext as JSON (json.dumps handles

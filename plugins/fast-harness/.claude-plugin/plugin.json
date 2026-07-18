@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
-  "description": "The CC package of fast-harness: shared Trace Browser E2E and cross-model review, plus CC-only session and safety hooks.",
-  "version": "0.2.0",
+  "description": "The CC package of fast-harness: shared checkpoint commits, Trace Browser E2E, and cross-model review, plus CC-only session and safety hooks.",
+  "version": "0.2.1",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"

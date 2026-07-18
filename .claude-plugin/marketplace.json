@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "A thin local-capabilities companion to Matt Pocock's engineering skills.",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "plugins": [
     {
       "name": "fast-harness",
-      "description": "Personal session rules, a destructive-operation guard, Trace Browser E2E guidance, and cross-model review helpers.",
-      "version": "0.2.0",
+      "description": "Personal session rules, checkpoint commits, a destructive-operation guard, Trace Browser E2E guidance, and cross-model review helpers.",
+      "version": "0.2.1",
       "source": "./plugins/fast-harness",
       "category": "workflow"
     },
