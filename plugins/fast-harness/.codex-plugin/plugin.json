@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
-  "version": "0.2.1",
-  "description": "A thin companion with checkpoint commit, Trace Browser E2E, and cross-model review guidance.",
+  "version": "0.3.0",
+  "description": "Matt workflow orchestration with checkpoint commit/push, Trace Browser E2E, and cross-model review.",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
@@ -19,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "fast-harness",
-    "shortDescription": "Checkpoint commits, Trace Browser E2E, and cross-model review.",
-    "longDescription": "fast-harness complements Matt Pocock's engineering skills with a cross-host checkpoint commit policy, real-browser E2E through Trace Browser, and a bounded cross-model second-opinion review. Host-specific hooks are kept outside the shared skill contract.",
+    "shortDescription": "Matt workflows with recoverable checkpoints and cross-review.",
+    "longDescription": "fast-harness orchestrates Matt Pocock's installed engineering skills in full or quick mode, persists verified checkpoints through ordinary commit/push, and adds real-browser E2E plus a mandatory different-model review.",
     "developerName": "ch-royde",
     "category": "Productivity",
     "capabilities": [
@@ -29,6 +29,8 @@
     ],
     "websiteURL": "https://github.com/ch-royde/fast-harness",
     "defaultPrompt": [
+      "按照 harness 的流程去实现这个目标。",
+      "快速实现这个改动。",
       "Implement this work with small verified local checkpoint commits.",
       "Run the real-browser E2E flow through Trace Browser.",
       "Get a cross-model second review of this change."

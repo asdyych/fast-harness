@@ -20,7 +20,10 @@ finished when an earlier coherent milestone is already verified.
 - A user instruction or repository rule that says not to commit takes
   precedence. Do not commit in a repository that explicitly requires a clean
   uncommitted handoff.
-- Never push or open a pull request without explicit user authorization.
+- During an active `harness-workflow`, ordinary-push every checkpoint to the
+  current branch immediately. Invoking that workflow authorizes these pushes.
+- Outside `harness-workflow`, never push or open a pull request without explicit
+  user authorization.
 - Never amend, rebase, squash, reset, force-push, or otherwise rewrite history
   without explicit user authorization.
 
@@ -40,7 +43,12 @@ finished when an earlier coherent milestone is already verified.
    claiming ownership of both.
 5. Commit with a message that describes the behavior or invariant established.
    Do not use `WIP`, `checkpoint`, or vague progress messages.
-6. Repeat before switching subsystems, starting a risky refactor or migration,
+6. During `harness-workflow`, immediately run an ordinary `git push`. If the
+   branch has no upstream and `origin` exists, use
+   `git push -u origin <current-branch>`. A failed push does not erase the local
+   commit: record it as pending, continue only work that remains safe, and never
+   resolve rejection with force-push or automatic history rewriting.
+7. Repeat before switching subsystems, starting a risky refactor or migration,
    or allowing another large independently useful diff to accumulate.
 
 A genuinely small, single-step task may use one final commit. A large task
@@ -51,4 +59,4 @@ behavior rather than line counts or elapsed time.
 
 Run the task's full relevant verification after the final slice. Report the
 local commits created, checks run, remaining uncommitted changes, and whether
-push was intentionally left pending.
+each commit's push state.

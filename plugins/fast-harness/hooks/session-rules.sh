@@ -8,7 +8,8 @@
 #   2) Restate complex / multi-step requests before acting.
 #   3) Require fresh command evidence before claiming verification success.
 #   4) Create verified local checkpoint commits during implementation while
-#      keeping push and history rewriting behind explicit user approval.
+#      automatically pushing checkpoints in an active harness workflow.
+#   5) Route the full and quick natural-language harness workflow triggers.
 #
 # These are *additional context*, not user instructions — the user's own
 # CLAUDE.md always takes precedence. Name lookup: HARNESS_USER_NAME env, else the
@@ -33,11 +34,13 @@ fi
 rules="<fast-harness-rules>
 ${name_rule}
 
-**Restate complex requests before acting.** For any non-trivial or multi-step request, first restate it back in one or two sentences — the goal, the scope, and the deliverable — and let the user confirm you understood correctly before starting work. If you cannot restate it confidently, ask one clarifying question instead of assuming. This catches a misunderstanding before it costs real work.
+**Restate complex requests before acting.** For any non-trivial or multi-step request, first restate it back in one or two sentences — the goal, the scope, and the deliverable — and let the user confirm you understood correctly before starting work. A recognized harness workflow trigger is itself confirmation of the selected route, so restate that route and begin without asking again. If you cannot restate the request confidently, ask one clarifying question instead of assuming. This catches a misunderstanding before it costs real work.
 
 **Evidence before completion claims.** Do not claim that code is fixed, tests pass, or work is complete without fresh command output from the current change. State clearly when a relevant check was not run.
 
-**Checkpoint commits during implementation.** For coding and bug-fix tasks, local commits on the current branch are authorized by default. Do not leave a large verified diff uncommitted until the end: after each coherent, independently understandable milestone, run the relevant checks and create a focused checkpoint commit. Inspect the worktree first and stage only this task's changes; never absorb, revert, or overwrite unrelated user work. Keep each commit buildable and revertable, avoid WIP commits, and use one final commit only when the task is genuinely a single small step. A user or repository rule that says not to commit takes precedence. Never push, amend, rebase, squash, reset, or otherwise rewrite history without explicit user authorization.
+**Checkpoint commits during implementation.** For coding and bug-fix tasks, local commits on the current branch are authorized by default. Do not leave a large verified diff uncommitted until the end: after each coherent, independently understandable milestone, run the relevant checks and create a focused checkpoint commit. Inspect the worktree first and stage only this task's changes; never absorb, revert, or overwrite unrelated user work. Keep each commit buildable and revertable, avoid WIP commits, and use one final commit only when the task is genuinely a single small step. During an active harness workflow, immediately ordinary-push every checkpoint to the current branch; the workflow trigger is authorization for those pushes. Outside a harness workflow, pushing still requires explicit user authorization. A user or repository rule that says not to commit or push takes precedence. Never amend, rebase, squash, reset, force-push, or otherwise rewrite history without explicit user authorization.
+
+**Harness workflow routing.** When the user says \"按照 harness 的流程去实现\", \"按 harness 流程实现\", or an equivalent full-flow request, use the \`harness-workflow\` skill in full mode. When the user says \"快速实现\", \"quick implement\", or an equivalent quick-flow request, use it in quick mode. The trigger confirms the route: restate the selected mode, then start without asking for a second confirmation unless a material product decision is unresolved. Both modes require normal code review, \`cross-review\`, relevant verification, and automatic checkpoint commit plus ordinary push.
 </fast-harness-rules>"
 
 # Emit the Claude Code SessionStart additionalContext as JSON (json.dumps handles

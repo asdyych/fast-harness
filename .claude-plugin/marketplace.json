@@ -5,14 +5,14 @@
     "url": "https://github.com/ch-royde"
   },
   "metadata": {
-    "description": "A thin local-capabilities companion to Matt Pocock's engineering skills.",
-    "version": "0.2.1"
+    "description": "A recoverable workflow orchestrator for Matt Pocock's engineering skills.",
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "fast-harness",
-      "description": "Personal session rules, checkpoint commits, a destructive-operation guard, Trace Browser E2E guidance, and cross-model review helpers.",
-      "version": "0.2.1",
+      "description": "Full/quick Matt workflows, automatic checkpoint commit/push, a destructive-operation guard, Trace Browser E2E, and cross-model review.",
+      "version": "0.3.0",
       "source": "./plugins/fast-harness",
       "category": "workflow"
     },

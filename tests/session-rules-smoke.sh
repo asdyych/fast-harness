@@ -21,7 +21,12 @@ required = [
     "Checkpoint commits during implementation",
     "local commits on the current branch are authorized by default",
     "stage only this task's changes",
-    "Never push, amend, rebase, squash, reset",
+    "immediately ordinary-push every checkpoint",
+    "Harness workflow routing",
+    "按照 harness 的流程去实现",
+    "快速实现",
+    "Both modes require normal code review, `cross-review`",
+    "Never amend, rebase, squash, reset, force-push",
 ]
 
 for phrase in required:
