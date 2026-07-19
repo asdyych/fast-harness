@@ -7,6 +7,8 @@ for phrase in \
   '按照 harness 的流程去实现' \
   '按照harness的流程去实现' \
   '快速实现' \
+  '/fast-harness-full' \
+  '/fast-harness-quick' \
   'to-spec' \
   'to-tickets' \
   'implement' \
@@ -21,8 +23,15 @@ for phrase in \
   }
 done
 
-grep -qF 'Quick mode' "$SKILL"
-grep -qF 'Full mode' "$SKILL"
-grep -qF 'Require either a configured upstream or an `origin` remote' "$SKILL"
-grep -qF 'do not duplicate that' "$SKILL"
-grep -qF 'do not claim the Goal complete' "$SKILL"
+for phrase in \
+  'Quick mode' \
+  'Full mode' \
+  'Require either a configured upstream or an `origin` remote' \
+  'do not duplicate that' \
+  'fixed-mode direct aliases' \
+  'do not claim the Goal complete'; do
+  grep -qF "$phrase" "$SKILL" || {
+    echo "missing workflow boundary phrase: $phrase" >&2
+    exit 1
+  }
+done

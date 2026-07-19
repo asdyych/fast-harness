@@ -49,7 +49,7 @@ npx skills@latest add mattpocock/skills
 | 能力 | Codex | CC |
 |---|---|---|
 | Matt 工程流程 | 直接调用已安装 skill | 使用 `/skill-name` |
-| 自动流程 | 调用 `harness-workflow` 或说触发短语 | `/harness full|quick` 或说触发短语 |
+| 自动流程 | 调用 `fast-harness-full` / `fast-harness-quick` 或说触发短语 | `/fast-harness-full` / `/fast-harness-quick` |
 | 分批本地提交 | 调用 `checkpoint-commits` | `checkpoint-commits` 或 SessionStart rule |
 | Trace Browser E2E | 调用 `e2e-browser` | `e2e-browser` 或 `/e2e` |
 | 跨模型复核 | 调用 `cross-review` | `cross-review` 或 `/cross-review` |
@@ -57,7 +57,7 @@ npx skills@latest add mattpocock/skills
 
 ## 自动流程
 
-说“按照 harness 的流程去实现”或同义表达时，运行完整路线：
+直接调用 `/fast-harness-full <目标>`，或说“按照 harness 的流程去实现”等同义表达时，运行完整路线：
 
 ```text
 grill 后的上下文 / Goal
@@ -69,7 +69,7 @@ grill 后的上下文 / Goal
   -> 完整验证 + 最终 commit/push
 ```
 
-说“快速实现”或 `quick implement` 时，跳过 spec 和 tickets：
+直接调用 `/fast-harness-quick <目标>`，或说“快速实现”、`quick implement` 时，跳过 spec 和 tickets：
 
 ```text
 明确目标
@@ -80,6 +80,8 @@ grill 后的上下文 / Goal
 ```
 
 完整路线适合 grill 后进入 Goal 的多阶段任务；快速路线适合目标清楚、能在单个上下文完成的改动。两条路线都强制执行普通代码审查和不同模型的 `cross-review`，不把 cross-review 当可选项。wrapper 在每个阶段读取已安装的 Matt `SKILL.md`，所以上游流程升级后无需在 fast-harness 复制更新。
+
+`/fast-harness-full` 和 `/fast-harness-quick` 是固定模式入口：命令后的全部文本都视为目标，即使目标中出现 `quick` 或 `full` 也不会改变路线。原 `/harness full|quick` 继续作为兼容入口。
 
 Matt 的 `implement` 上游只要求完成后提交，没有定义长任务的中间提交策略。fast-harness 通过共享 `checkpoint-commits` skill 和 CC SessionStart rule 补充以下契约：实现与修 bug 默认授权在当前分支创建本地提交；每完成一个可独立理解、已通过相关检查的行为切片就提交一次，不把大段已验证 diff 留到任务末尾。进入 `harness-workflow` 后，每个 checkpoint 都立即普通 push 到当前分支。用户或仓库明确要求不提交或不 push 时，以该要求为准。
 
@@ -163,10 +165,14 @@ plugins/fast-harness/
     destructive_guard.sh
     session-rules.sh
   commands/
+    fast-harness-full.md
+    fast-harness-quick.md
     harness.md
     e2e.md
     cross-review.md
   skills/
+    fast-harness-full/SKILL.md
+    fast-harness-quick/SKILL.md
     harness-workflow/SKILL.md
     checkpoint-commits/SKILL.md
     e2e-browser/SKILL.md

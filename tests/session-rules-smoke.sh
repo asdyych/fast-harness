@@ -25,6 +25,9 @@ required = [
     "Harness workflow routing",
     "按照 harness 的流程去实现",
     "快速实现",
+    "/fast-harness-full",
+    "/fast-harness-quick",
+    "fixed-mode direct aliases",
     "Both modes require normal code review, `cross-review`",
     "Never amend, rebase, squash, reset, force-push",
 ]

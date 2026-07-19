@@ -67,3 +67,5 @@ npx skills@latest add mattpocock/skills
 - 项目级编码和文档规则。
 
 这些内容应放在项目脚本、CI、`AGENTS.md`、`CLAUDE.md` 或 Matt setup 生成的 `docs/agents/` 中，而不是重新加入 fast-harness 的通用流程层。fast-harness `0.2.1` 增加按已验证行为切片创建本地 checkpoint commits 的默认值；`0.3.0` 又增加完整/快速路由，并在用户触发该 workflow 后自动普通 push 每个 checkpoint。项目可以明确覆盖这些默认值。该授权不包含 PR、force-push 或任何历史改写。
+
+`0.3.1` 增加固定模式直接入口：`/fast-harness-full <目标>` 和 `/fast-harness-quick <目标>`。命令参数只描述目标，不会反向覆盖命令选定的模式。

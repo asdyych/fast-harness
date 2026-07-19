@@ -4,9 +4,9 @@ description: |
   Orchestrate Matt Pocock's engineering skills into a recoverable implementation
   flow with mandatory code review, cross-review, verification, and automatic
   checkpoint commit/push. Use for "按照 harness 的流程去实现", "按照harness的流程去实现",
-  "按 harness 流程实现", "harness full", "快速实现", "quick implement", or
-  equivalent requests. Full mode runs to-spec and to-tickets before implement;
-  quick mode skips them.
+  "按 harness 流程实现", "harness full", "/fast-harness-full", "快速实现",
+  "quick implement", "/fast-harness-quick", or equivalent requests. Full mode
+  runs to-spec and to-tickets before implement; quick mode skips them.
 ---
 
 # Harness workflow
@@ -19,13 +19,18 @@ phase so upstream updates remain authoritative.
 ## Route selection
 
 - **Full mode**: "按照 harness 的流程去实现", "按照harness的流程去实现",
-  "按 harness 流程实现", `harness full`, or an equivalent request. Run
+  "按 harness 流程实现", `harness full`, `/fast-harness-full`, or an equivalent
+  request. Run
   `to-spec` -> `to-tickets` -> one
   `implement` phase per ticket -> final `code-review` -> `cross-review` -> full
   verification.
-- **Quick mode**: "快速实现", `quick implement`, `harness quick`, or an
-  equivalent request. Skip `to-spec` and `to-tickets`; run `implement` directly,
-  then `code-review` -> `cross-review` -> full verification.
+- **Quick mode**: "快速实现", `quick implement`, `harness quick`,
+  `/fast-harness-quick`, or an equivalent request. Skip `to-spec` and
+  `to-tickets`; run `implement` directly, then `code-review` -> `cross-review`
+  -> full verification.
+- The explicit `/fast-harness-full` and `/fast-harness-quick` commands are
+  fixed-mode direct aliases. They lock their modes: treat all following text as
+  the goal and do not reinterpret it as a route override.
 - If both signals appear, explicit quick wording wins. If this skill is invoked
   without a mode, use full mode.
 

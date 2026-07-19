@@ -1,6 +1,6 @@
 {
   "name": "fast-harness",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Matt workflow orchestration with checkpoint commit/push, Trace Browser E2E, and cross-model review.",
   "author": {
     "name": "ch-royde",
@@ -29,6 +29,8 @@
     ],
     "websiteURL": "https://github.com/ch-royde/fast-harness",
     "defaultPrompt": [
+      "/fast-harness-full 实现这个目标。",
+      "/fast-harness-quick 实现这个改动。",
       "按照 harness 的流程去实现这个目标。",
       "快速实现这个改动。",
       "Implement this work with small verified local checkpoint commits.",
