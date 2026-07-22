@@ -7,6 +7,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/bin"
+mkdir -p "$tmp/fallback-bin"
 
 cat > "$tmp/bin/cc" <<'SH'
 #!/usr/bin/env bash
@@ -78,9 +79,34 @@ printf '%s\n' '{"type":"result","subtype":"success","is_error":false,"result":"N
 SH
 chmod +x "$tmp/bin/cc"
 
+cat > "$tmp/fallback-bin/codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" == "--version" ]]; then
+  echo "stubbed Codex"
+  exit 0
+fi
+
+# Capture the real prompt and emit Codex's output-last-message contract.
+result_file=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --output-last-message) result_file="${2:-}"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+[[ -n "$result_file" ]] || { echo "missing --output-last-message" >&2; exit 102; }
+cat > "$FAKE_CODEX_STDIN"
+printf '%s\n' 'NO_FINDINGS: stubbed codex fallback' > "$result_file"
+SH
+chmod +x "$tmp/fallback-bin/codex"
+
 export PATH="$tmp/bin:$PATH"
 export FAKE_CC_ARGS="$tmp/cc-args.txt"
 export FAKE_CC_STDIN="$tmp/cc-stdin.txt"
+export FAKE_CODEX_STDIN="$tmp/codex-stdin.txt"
 
 printf 'review prompt\n' > "$tmp/prompt.md"
 "$SCRIPT" --peer cc --prompt-file "$tmp/prompt.md" --timeout 10 --log-dir "$tmp/logs-ok" > "$tmp/out.txt" 2> "$tmp/err.txt"
@@ -99,6 +125,14 @@ HARNESS_HOST=codex "$SCRIPT" --peer auto --prompt-file "$tmp/prompt.md" --log-di
 grep -q '^timeout=1200$' "$tmp/logs-default-timeout/meta.txt"
 grep -q '^peer=auto$' "$tmp/logs-default-timeout/meta.txt"
 grep -q '^selected_peer=cc$' "$tmp/logs-default-timeout/meta.txt"
+
+# With no different-model CLI available, auto mode retains the Codex fallback.
+PATH="$tmp/fallback-bin:/usr/bin:/bin:/usr/sbin:/sbin" HARNESS_HOST=codex \
+  "$SCRIPT" --peer auto --prompt-file "$tmp/prompt.md" --timeout 10 --log-dir "$tmp/logs-codex-fallback" > "$tmp/fallback-out.txt" 2> "$tmp/fallback-err.txt"
+grep -qxF 'NO_FINDINGS: stubbed codex fallback' "$tmp/fallback-out.txt"
+grep -q '^peer=auto$' "$tmp/logs-codex-fallback/meta.txt"
+grep -q '^selected_peer=codex$' "$tmp/logs-codex-fallback/meta.txt"
+grep -q 'review prompt' "$FAKE_CODEX_STDIN"
 
 EXPECT_CC_MODE=safe-mode HARNESS_REVIEW_PEER_CC_MODE=safe-mode \
   "$SCRIPT" --peer cc --prompt-file "$tmp/prompt.md" --timeout 10 --log-dir "$tmp/logs-safe" > "$tmp/safe-out.txt" 2> "$tmp/safe-err.txt"
