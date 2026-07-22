@@ -35,7 +35,7 @@
       "快速实现这个改动。",
       "Implement this work with small verified local checkpoint commits.",
       "Run the real-browser E2E flow through Trace Browser.",
-      "Get a cross-model second review of this change."
+      "Review this change."
     ],
     "brandColor": "#2563EB"
   }

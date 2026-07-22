@@ -1,16 +1,17 @@
 ---
 name: cross-review
 description: |
-  Get a bounded second opinion on the current diff from a different model after
-  the normal code review. Use for "cross review", "peer review", "交叉 review",
-  or when a material change needs an independent reviewer before merge.
+  Review the current diff with a cross-model peer by default. Use for "review",
+  "cross review", "peer review", "交叉 review", or when a material change needs
+  an independent reviewer before merge.
 ---
 
-# Cross-model second review
+# Default cross-model review
 
-This is an optional second opinion after Matt Pocock's `code-review` skill. It
-does not replace the Standards and Spec review, create another task ledger, or
-own the development workflow.
+Use this as the default standalone review path. Matt Pocock's `code-review`
+remains available when its Standards and Spec review is explicitly requested,
+and both reviews remain required inside `harness-workflow`. This skill does not
+create another task ledger or own the development workflow.
 
 ## Protocol
 

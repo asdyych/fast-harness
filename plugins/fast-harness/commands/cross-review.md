@@ -1,9 +1,10 @@
 ---
-description: Get a bounded different-model second review after the normal code review
+description: Review the current change with a different-model peer
 ---
 
-Use the `cross-review` skill. Treat this as an optional second opinion after
-Matt Pocock's `code-review`, not as a replacement workflow.
+Use the `cross-review` skill. This is the default standalone review path;
+Matt Pocock's `code-review` remains available when its Standards and Spec
+review is explicitly requested. Inside `harness-workflow`, run both reviews.
 
 Resolve `HARNESS_PLUGIN_ROOT` from `CODEX_PLUGIN_ROOT` or `CLAUDE_PLUGIN_ROOT`,
 run `scripts/review-context.sh $ARGUMENTS`, and send the resulting scope plus a

@@ -52,7 +52,7 @@ npx skills@latest add mattpocock/skills
 | 自动流程 | 调用 `fast-harness-full` / `fast-harness-quick` 或说触发短语 | `/fast-harness-full` / `/fast-harness-quick` |
 | 分批本地提交 | 调用 `checkpoint-commits` | `checkpoint-commits` 或 SessionStart rule |
 | Trace Browser E2E | 调用 `e2e-browser` | `e2e-browser` 或 `/e2e` |
-| 跨模型复核 | 调用 `cross-review` | `cross-review` 或 `/cross-review` |
+| 默认 review | 调用 `cross-review` | `cross-review`、`/review` 或 `/cross-review` |
 | Session rules / destructive guard | 项目规则与宿主权限机制 | plugin hooks |
 
 ## 自动流程
@@ -143,7 +143,7 @@ Trace Browser RPA 位于 `127.0.0.1:64606/trace/proto`，需要应用注入的 I
 
 ### Cross Review
 
-Codex 和 CC 都可调用 `cross-review`；CC 另有 `/cross-review` 命令别名。单独使用时它是 Matt `code-review` 之后的按需异模型第二意见；进入 `harness-workflow` 后则是强制完成门。它不是另一套 review 工作流。
+Codex 和 CC 都可调用 `cross-review`；CC 另有 `/review` 和 `/cross-review` 命令别名。单独使用时，`cross-review` 是默认的 review 路径；需要 Matt 的 Standards + Spec 审查时再显式调用 `code-review`。进入 `harness-workflow` 后，两种 review 都是强制完成门。它不是另一套 review 工作流。
 
 它会：
 
@@ -170,6 +170,7 @@ plugins/fast-harness/
     harness.md
     e2e.md
     cross-review.md
+    review.md
   skills/
     fast-harness-full/SKILL.md
     fast-harness-quick/SKILL.md
