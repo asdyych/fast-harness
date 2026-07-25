@@ -64,7 +64,6 @@ grill 后的上下文 / Goal
   -> to-spec
   -> to-tickets
   -> 逐 ticket implement + checkpoint commit/push
-  -> code-review
   -> cross-review
   -> 完整验证 + 最终 commit/push
 ```
@@ -74,12 +73,11 @@ grill 后的上下文 / Goal
 ```text
 明确目标
   -> implement + checkpoint commit/push
-  -> code-review
   -> cross-review
   -> 完整验证 + 最终 commit/push
 ```
 
-完整路线适合 grill 后进入 Goal 的多阶段任务；快速路线适合目标清楚、能在单个上下文完成的改动。两条路线都强制执行普通代码审查和不同模型的 `cross-review`，不把 cross-review 当可选项。wrapper 在每个阶段读取已安装的 Matt `SKILL.md`，所以上游流程升级后无需在 fast-harness 复制更新。
+完整路线适合 grill 后进入 Goal 的多阶段任务；快速路线适合目标清楚、能在单个上下文完成的改动。两条路线都只执行一次不同模型的 `cross-review`，不再叠加普通 `code-review`。需要 Matt 的 Standards + Spec 双轴审查时仍可显式调用 `code-review`。wrapper 在每个阶段读取已安装的 Matt `SKILL.md`，所以上游流程升级后无需在 fast-harness 复制更新。
 
 `/fast-harness-full` 和 `/fast-harness-quick` 是固定模式入口：命令后的全部文本都视为目标，即使目标中出现 `quick` 或 `full` 也不会改变路线。原 `/harness full|quick` 继续作为兼容入口。
 
@@ -143,13 +141,13 @@ Trace Browser RPA 位于 `127.0.0.1:64606/trace/proto`，需要应用注入的 I
 
 ### Cross Review
 
-Codex 和 CC 都可调用 `cross-review`；CC 另有 `/review` 和 `/cross-review` 命令别名。单独使用时，`cross-review` 是默认的 review 路径；需要 Matt 的 Standards + Spec 审查时再显式调用 `code-review`。进入 `harness-workflow` 后，两种 review 都是强制完成门。它不是另一套 review 工作流。
+Codex 和 CC 都可调用 `cross-review`；CC 另有 `/review` 和 `/cross-review` 命令别名。单独使用时，`cross-review` 是默认的 review 路径；需要 Matt 的 Standards + Spec 审查时再显式调用 `code-review`。进入 `harness-workflow` 后，`cross-review` 是唯一 review 门，不再重复运行 `code-review`。它不是另一套 review 工作流。
 
 它会：
 
 1. 使用 `review-context.sh` 一次收集 diff、base、文件列表和 peer 可用性。
 2. 使用 `harness-review-peer.sh --peer auto` 调用不同模型的 Codex、CC 或 Gemini peer。
-3. 只接收有 `file:line`、严重级别和具体失败场景的实质发现。
+3. 同时检查目标、仓库规则或 spec 偏差，以及正确性、安全、数据丢失、并发和明确的范围膨胀；只接收有 `file:line`、严重级别和具体失败场景的实质发现。
 4. 修复后最多复查一次，然后输出共识或未决项。
 
 在 Codex 中，`auto` 优先选择 CC；在其他宿主中优先选择 Codex。自动探测不可用时可设置 `HARNESS_HOST=codex|cc`。这里的 `cc` 是公开宿主标签，脚本会通过版本信息识别真正的 CC CLI，不会把系统 C 编译器误当成 reviewer。Codex peer 使用 read-only sandbox，CC peer 使用 plan mode 且禁用工具。CLI 超时或无最终结果时，wrapper 会保留诊断日志，但不会在仓库中创建 review ledger。

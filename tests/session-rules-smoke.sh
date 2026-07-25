@@ -28,7 +28,7 @@ required = [
     "/fast-harness-full",
     "/fast-harness-quick",
     "fixed-mode direct aliases",
-    "Both modes require normal code review, `cross-review`",
+    "Both modes require one `cross-review` as the only review gate",
     "Never amend, rebase, squash, reset, force-push",
 ]
 

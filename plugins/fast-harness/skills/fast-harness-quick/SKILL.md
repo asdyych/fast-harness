@@ -3,8 +3,8 @@ name: fast-harness-quick
 description: |
   Run the quick recoverable harness implementation route. Use when invoked as
   /fast-harness-quick or when the user asks for that exact entry point. Delegates
-  to harness-workflow quick mode: direct implement, code-review, mandatory
-  cross-review, verification, and checkpoint commit/push without spec or tickets.
+  to harness-workflow quick mode: direct implement, one mandatory cross-review,
+  verification, and checkpoint commit/push without spec or tickets.
 ---
 
 # Fast harness quick

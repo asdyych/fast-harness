@@ -4,7 +4,7 @@ description: |
   Run the full recoverable harness implementation route. Use when invoked as
   /fast-harness-full or when the user asks for that exact entry point. Delegates
   to harness-workflow full mode: to-spec, to-tickets, per-ticket implement,
-  code-review, mandatory cross-review, verification, and checkpoint commit/push.
+  one mandatory cross-review, verification, and checkpoint commit/push.
 ---
 
 # Fast harness full

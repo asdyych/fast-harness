@@ -12,8 +12,7 @@ for phrase in \
   'to-spec' \
   'to-tickets' \
   'implement' \
-  'code-review' \
-  'mandatory `cross-review`' \
+  'single mandatory `cross-review`' \
   'git push -u origin <current-branch>' \
   'Never use `--force`' \
   'workflow_base=$(git rev-parse HEAD)'; do
@@ -27,11 +26,26 @@ for phrase in \
   'Quick mode' \
   'Full mode' \
   'Require either a configured upstream or an `origin` remote' \
-  'do not duplicate that' \
+  "workflow's only review gate" \
   'fixed-mode direct aliases' \
   'do not claim the Goal complete'; do
   grep -qF "$phrase" "$SKILL" || {
     echo "missing workflow boundary phrase: $phrase" >&2
     exit 1
   }
+done
+
+if grep -qF 'both required' "$SKILL"; then
+  echo 'workflow must not require two reviews' >&2
+  exit 1
+fi
+
+for obsolete in \
+  'code-review` -> `cross-review' \
+  'normal `code-review` and different-model' \
+  'run both reviews'; do
+  if grep -qF "$obsolete" "$SKILL"; then
+    echo "obsolete double-review contract: $obsolete" >&2
+    exit 1
+  fi
 done

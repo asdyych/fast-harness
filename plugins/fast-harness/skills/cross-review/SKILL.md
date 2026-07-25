@@ -10,8 +10,8 @@ description: |
 
 Use this as the default standalone review path. Matt Pocock's `code-review`
 remains available when its Standards and Spec review is explicitly requested,
-and both reviews remain required inside `harness-workflow`. This skill does not
-create another task ledger or own the development workflow.
+while `harness-workflow` uses this as its single review gate. This skill does
+not create another task ledger or own the development workflow.
 
 ## Protocol
 
@@ -32,9 +32,11 @@ create another task ledger or own the development workflow.
    "${HARNESS_PLUGIN_ROOT}/scripts/review-context.sh" [--scope auto|diff|branch|pr] [--base <ref>] [--peer auto|codex|cc|gemini]
    ```
 
-5. Write a temporary prompt containing the goal and the preflight output. Ask
-   only for correctness, security, data-loss, concurrency, and clear scope-creep
-   findings. Require `file:line`, severity, and a concrete failure scenario.
+5. Write a temporary prompt containing the goal, applicable repository rules,
+   acceptance criteria or spec, and the preflight output. Ask for mismatches
+   against the goal or rules plus correctness, security, data-loss, concurrency,
+   and clear scope-creep findings. Require `file:line`, severity, and a concrete
+   failure scenario.
 6. Send the prompt to one different-model peer:
 
    ```bash
