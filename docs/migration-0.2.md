@@ -36,7 +36,7 @@ fast-harness 只保留需要本地机制或明确执行边界的能力：
 | `/loop-*`、`/fast-harness-loop` | Matt `/to-tickets` 后逐 ticket 使用 `/implement` |
 | `/verify` | 项目自己的 typecheck、test、lint、build 或 CI 命令 |
 | `/wt-*` | 项目自己的 dev scripts、worktree hooks 或文档 |
-| `/review-loop` | Matt `/code-review` 后按需 `/cross-review` |
+| `/review-loop` | `/cross-review` |
 | `/chrome-cdp` | Trace Browser `/api/profiles` 和 `/api/launch` |
 | `/e2e` | 保留；实现改为 Trace Browser 优先 |
 | 通用 subagents | Matt skills 内建 subagent 流程或 agent 自身 delegation |

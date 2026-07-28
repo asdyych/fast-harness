@@ -19,26 +19,19 @@ phase so upstream updates remain authoritative.
 ## Route selection
 
 - **Full mode**: "按照 harness 的流程去实现", "按照harness的流程去实现",
-  "按 harness 流程实现", `harness full`, `/fast-harness-full`, or an equivalent
-  request. Run
-  `to-spec` -> `to-tickets` -> one
-  `implement` phase per ticket -> `cross-review` -> full
-  verification.
-- **Quick mode**: "快速实现", `quick implement`, `harness quick`,
-  `/fast-harness-quick`, or an equivalent request. Skip `to-spec` and
-  `to-tickets`; run `implement` directly, then `cross-review` -> full
-  verification.
-- The explicit `/fast-harness-full` and `/fast-harness-quick` commands are
-  fixed-mode direct aliases. They lock their modes: treat all following text as
-  the goal and do not reinterpret it as a route override.
-- If both signals appear, explicit quick wording wins. If this skill is invoked
-  without a mode, use full mode.
+  "按 harness 流程实现", `harness full`, or `/fast-harness-full`. Run `to-spec`
+  -> `to-tickets` -> per-ticket `implement`.
+- **Quick mode**: "快速实现", `quick implement`, `harness quick`, or
+  `/fast-harness-quick`. Run `implement` without spec or tickets.
+- `/fast-harness-full` and `/fast-harness-quick` are fixed-mode direct aliases;
+  all following text is the goal. Explicit quick wording otherwise wins, and
+  full mode is the default.
 
-The route phrase confirms the route and authorizes ordinary checkpoint pushes.
-Restate the selected route and begin without asking for a second confirmation.
-Pause only for a material product decision that the grill/context did not
-settle, an inseparable dirty-worktree conflict, a destructive action, or missing
-repository/tracker information that cannot be discovered.
+Both routes finish with directly relevant verification and a single mandatory `cross-review`.
+A route trigger confirms the mode and authorizes ordinary checkpoint pushes.
+Restate the mode and start. Pause only for a material product decision,
+inseparable user changes, a destructive action, or undiscoverable
+repository/tracker information.
 
 ## Upstream skills
 
@@ -50,39 +43,26 @@ directory. Before each Matt phase, resolve its installed source:
 "${HARNESS_PLUGIN_ROOT}/scripts/resolve-matt-skill.sh" <skill-name>
 ```
 
-Read the returned file in full and execute it as the phase sub-protocol. The
-wrapper changes routing, scope discipline, checkpoint persistence, and the
-mandatory final cross-review. Matt's requirements for TDD, testing seams, and
-ticket shape still apply inside the scope defined below. `code-review` remains
-available for explicit standalone use, but the harness route does not run it in
-addition to `cross-review`. If a required Matt skill is unavailable, stop
-before editing and report the missing installation.
+Read the returned file in full before that phase. If it is unavailable, stop
+before editing. Apply its protocol inside the scope below; this wrapper owns
+only routing, scope, checkpoint persistence, and the final review gate. Skip the
+`code-review` phase offered by `implement`.
 
 ## Core-loop scope discipline
 
-Prove the smallest useful end-to-end behavior before hardening its edges.
-Implementation, tests, tickets, and review fixes must stay inside the agreed
-acceptance checks.
+Prove the smallest useful end-to-end behavior first.
 
-- Do not add implementation or tests for speculative edge cases. Promote an
-  edge case into the current scope only when it is an explicit acceptance
-  requirement, a reproduced defect, reachable through normal inputs, blocks
-  the core flow, or presents a credible security or data-loss risk.
-- For each behavior slice, prefer one representative success-path test. Add a
-  failure-path test only for required behavior, an intentional branch, or a
-  reproduced regression. Do not enumerate theoretical input combinations,
-  impossible states already excluded by a trusted boundary, or defensive
-  behavior with no concrete failure scenario.
-- During implementation, run the narrowest test or check that exercises the
-  changed behavior. At the final gate, run the project's directly relevant
-  suites based on the changed surface; do not run every available suite by
-  habit.
-- Stop expanding tests when the acceptance checks and directly affected
-  existing tests pass. Coverage targets, exhaustive matrices, fuzzing, load
-  tests, and unrelated cleanup are out of scope unless the user, repository, or
-  accepted requirements explicitly require them.
-- Record a deferred edge case only when it has a concrete scenario and likely
-  follow-up value. Do not manufacture a backlog of hypothetical concerns.
+- Do not add implementation or tests for speculative edge cases. Promote one
+  only when explicitly required, reproduced, reachable through normal input,
+  blocking the core flow, or a credible security/data-loss risk.
+- Prefer one representative success test per behavior slice. Add failure tests
+  only for required behavior, real branches, or regressions. Skip theoretical
+  combinations and impossible states already excluded by a trusted boundary.
+- Run narrow checks during implementation and directly affected suites at the
+  final gate. Stop expanding tests when the acceptance checks and affected
+  existing tests pass. Do not add coverage targets, exhaustive matrices,
+  fuzzing, load tests, unrelated cleanup, or hypothetical backlogs unless
+  explicitly required.
 
 ## Preflight
 
@@ -105,85 +85,55 @@ acceptance checks.
 
 ## Full mode
 
-1. Follow `to-spec` using the grilled conversation. Define the smallest
-   demonstrable end-to-end acceptance path and reuse testing seams already
-   confirmed during grilling. Ask about a seam only when the existing context
-   does not settle it.
-2. Follow `to-tickets` and create tracer-bullet tickets with blocking edges. The
-   route trigger approves a recommended breakdown that stays within the agreed
-   scope; ask only when a split changes scope or introduces a material choice.
-   Do not create tickets for edge cases that fail the promotion rules above.
+1. Follow `to-spec`; define the smallest end-to-end acceptance path and reuse
+   testing seams already settled by the conversation.
+2. Follow `to-tickets`; create tracer-bullet tickets with blocking edges, but no
+   ticket for an unpromoted edge case.
 3. If planning artifacts changed tracked repository files, verify their format,
-   checkpoint-commit them, and ordinary-push immediately.
-4. Work the ticket frontier blockers-first. Bound each ticket as its own phase
-   and use the ticket as the source of truth when Goal mode continues in a fresh
-   turn or context.
-5. For each ticket, record `ticket_base`, follow `implement`, and apply
-   `checkpoint-commits` after every coherent verified slice. Override and skip
-   the `code-review` phase offered by `implement`; the workflow's single review
-   gate is the aggregate `cross-review`. Apply the core-loop test limits, rerun
-   the narrow relevant checks, checkpoint-commit, ordinary-push, and update
-   ticket status.
-6. When all tickets are done, run the directly relevant project verification
-   once before review. Fix, verify, commit, and push failures caused by the
-   workflow changes.
-7. Run the single mandatory `cross-review` against `workflow_base`. Verify every
-   material in-scope finding. Reject speculative hardening that fails the edge
-   promotion rules. After accepted fixes, rerun relevant checks, commit,
-   ordinary-push, and run the skill's one allowed follow-up review when the diff
-   changed materially.
+   checkpoint them, and ordinary-push.
+4. Work blockers-first. Treat each ticket as one `implement` phase and use the
+   ticket as its durable source of truth. Apply the shared gates below.
 
 ## Quick mode
 
-1. Write a one-sentence goal and the minimum concrete acceptance checks needed
-   to prove the core flow in the working context; do not create a spec or
-   tickets.
-2. Record `workflow_base`, follow `implement` directly, and apply
-   `checkpoint-commits` after every coherent verified slice. Override and skip
-   the `code-review` phase offered by `implement`; the workflow's single review
-   gate is `cross-review`. Apply the core-loop test limits throughout.
-3. Before review, run only the narrow acceptance checks for the changed
-   behavior. Fix failures caused by the change, verify, commit, and
-   ordinary-push.
-4. Run the single mandatory `cross-review` against `workflow_base`. Verify
-   material in-scope findings and reject speculative hardening that fails the
-   edge promotion rules. After accepted fixes, rerun narrow checks, commit,
-   ordinary-push, and use the one allowed follow-up review when needed.
-5. Run the directly relevant final verification once. Commit and ordinary-push
-   any final fix.
+Write a one-sentence goal and the minimum acceptance checks, then follow
+`implement` directly and apply the shared gates below. Do not create a spec or
+tickets.
 
 If quick work grows beyond one bounded context or reveals unresolved product
 design, state that quick mode no longer fits and ask to promote it to full mode
 before creating planning artifacts.
 
-## Persistence contract
+## Shared gates
 
-At every checkpoint:
+1. Follow `implement` inside the core-loop scope. After each coherent slice, run
+   narrow checks and follow `checkpoint-commits`.
+2. After implementation, run directly affected project verification once. Fix
+   only failures caused by the change.
+3. Run `cross-review` against `workflow_base`; it is the workflow's only review gate.
+   Do not also run `code-review`.
+4. Verify material findings against the scope rules. After accepted fixes,
+   rerun affected checks and use cross-review's one permitted follow-up only
+   when the diff changed materially.
 
-1. Run the narrow relevant checks and inspect the diff.
-2. Stage only this workflow's files or hunks; never absorb initial user changes.
-3. Run `git diff --cached --check` and create a focused, buildable commit.
-4. If an upstream exists, run ordinary `git push`. Otherwise, when `origin`
-   exists, run `git push -u origin <current-branch>`.
+## Persistence
+
+Follow `checkpoint-commits`. This workflow additionally requires an ordinary
+push after every checkpoint: use the upstream, or
+`git push -u origin <current-branch>` when only `origin` exists.
 
 Never use `--force`, force-with-lease, amend, rebase, squash, reset, or any
 history-rewriting recovery. If push fails, keep the local commit, record the
-pending SHA and reason, and continue only safe local work. Retry ordinary push
-after later checkpoints, but do not claim the Goal complete while required
-commits remain unpushed.
+pending SHA and reason, and continue only safe local work; do not claim the Goal complete
+while required commits remain unpushed.
 
 ## Review and completion gates
 
-Different-model `cross-review` is the workflow's only review gate. Do not also
-run normal `code-review`; it remains an explicit standalone capability. If no
-peer is available, do not fake or silently skip cross-review: preserve all
-commits, finish safe verification, and report the workflow as blocked on that
-gate.
+If no different-model peer is available, preserve commits, finish safe
+verification, and report the workflow as blocked on cross-review.
 
-Complete only when all selected phases, accepted in-scope review fixes, and
-relevant checks pass; every workflow-owned change is committed; every required
-ordinary push succeeds; and the worktree contains no new workflow-owned
-changes. Passing the acceptance checks is the stopping condition; do not delay
-completion for unpromoted edge cases. Report the route, spec/tickets used,
-commits and remote branch, checks, the review result, any preserved pre-existing
-changes, and any unresolved blocker.
+Complete when selected phases, accepted fixes, and relevant checks pass; all
+workflow changes are committed and pushed; and no workflow-owned changes remain.
+Acceptance checks are the stopping condition. Report the route, planning
+artifacts, commits/branch, checks, review result, preserved user changes, and
+blockers.

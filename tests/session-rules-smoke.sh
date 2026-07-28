@@ -22,7 +22,7 @@ required = [
     "Core-loop scope discipline",
     "Do not implement or test speculative edge cases",
     "Stop when the acceptance checks and directly affected existing tests pass",
-    "local commits on the current branch are authorized by default",
+    "authorize local commits on the current branch by default",
     "stage only this task's changes",
     "immediately ordinary-push every checkpoint",
     "Harness workflow routing",
