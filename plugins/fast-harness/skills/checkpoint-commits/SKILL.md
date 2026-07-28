@@ -57,6 +57,6 @@ behavior rather than line counts or elapsed time.
 
 ## Completion
 
-Run the task's full relevant verification after the final slice. Report the
-local commits created, checks run, remaining uncommitted changes, and whether
-each commit's push state.
+Run the task's directly relevant final verification after the final slice.
+Report the local commits created, checks run, remaining uncommitted changes,
+and the push state of each commit.

@@ -25,6 +25,9 @@ done
 for phrase in \
   'Quick mode' \
   'Full mode' \
+  'Core-loop scope discipline' \
+  'Do not add implementation or tests for speculative edge cases' \
+  'Stop expanding tests when the acceptance checks' \
   'Require either a configured upstream or an `origin` remote' \
   "workflow's only review gate" \
   'fixed-mode direct aliases' \

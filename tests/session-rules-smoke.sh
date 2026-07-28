@@ -19,6 +19,9 @@ context = payload["hookSpecificOutput"]["additionalContext"]
 required = [
     'Address the user as "royde"',
     "Checkpoint commits during implementation",
+    "Core-loop scope discipline",
+    "Do not implement or test speculative edge cases",
+    "Stop when the acceptance checks and directly affected existing tests pass",
     "local commits on the current branch are authorized by default",
     "stage only this task's changes",
     "immediately ordinary-push every checkpoint",

@@ -6,10 +6,11 @@
 #   1) Address the user by their configured name at the start of every response —
 #      a context-awareness signal (drop it and you've likely lost the thread).
 #   2) Restate complex / multi-step requests before acting.
-#   3) Require fresh command evidence before claiming verification success.
-#   4) Create verified local checkpoint commits during implementation while
+#   3) Keep implementation and tests focused on the core acceptance loop.
+#   4) Require fresh command evidence before claiming verification success.
+#   5) Create verified local checkpoint commits during implementation while
 #      automatically pushing checkpoints in an active harness workflow.
-#   5) Route the full and quick natural-language harness workflow triggers.
+#   6) Route the full and quick natural-language harness workflow triggers.
 #
 # These are *additional context*, not user instructions — the user's own
 # CLAUDE.md always takes precedence. Name lookup: HARNESS_USER_NAME env, else the
@@ -35,6 +36,8 @@ rules="<fast-harness-rules>
 ${name_rule}
 
 **Restate complex requests before acting.** For any non-trivial or multi-step request, first restate it back in one or two sentences — the goal, the scope, and the deliverable — and let the user confirm you understood correctly before starting work. A recognized harness workflow trigger is itself confirmation of the selected route, so restate that route and begin without asking again. If you cannot restate the request confidently, ask one clarifying question instead of assuming. This catches a misunderstanding before it costs real work.
+
+**Core-loop scope discipline.** Prove the smallest useful end-to-end behavior before hardening edges. Do not implement or test speculative edge cases. Promote an edge case only when it is explicitly required, reproduced, reachable through normal inputs, blocks the core flow, or presents a credible security or data-loss risk. Prefer one representative success-path test per behavior slice and add failure-path tests only for required behavior, intentional branches, or reproduced regressions. Stop when the acceptance checks and directly affected existing tests pass; do not expand into exhaustive matrices, unrelated suites, or hypothetical hardening unless explicitly required.
 
 **Evidence before completion claims.** Do not claim that code is fixed, tests pass, or work is complete without fresh command output from the current change. State clearly when a relevant check was not run.
 

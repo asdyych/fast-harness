@@ -36,7 +36,9 @@ not create another task ledger or own the development workflow.
    acceptance criteria or spec, and the preflight output. Ask for mismatches
    against the goal or rules plus correctness, security, data-loss, concurrency,
    and clear scope-creep findings. Require `file:line`, severity, and a concrete
-   failure scenario.
+   failure scenario. Explicitly exclude speculative hardening and edge cases
+   that are not required, reproduced, reachable through normal inputs, blocking
+   the core flow, or credible security/data-loss risks.
 6. Send the prompt to one different-model peer:
 
    ```bash
@@ -51,7 +53,8 @@ not create another task ledger or own the development workflow.
    it tries Codex before CC. Set `HARNESS_HOST=codex|cc` only when automatic host
    detection is unavailable. Codex runs read-only and CC runs in plan mode.
 7. Verify every material finding against the code. Apply only findings supported
-   by evidence. Style preferences and speculative hardening are not defects.
+   by evidence and inside the stated acceptance scope. Style preferences,
+   theoretical edge cases, and speculative hardening are not defects.
 8. If fixes materially change the diff, run one follow-up review. Stop after the
    second review and surface any unresolved disagreement to the user.
 
