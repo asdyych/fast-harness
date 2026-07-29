@@ -1,7 +1,7 @@
 {
   "name": "fast-harness",
   "description": "The CC package of fast-harness: Matt workflow orchestration, checkpoint commit/push, Trace Browser E2E, and cross-model review, plus CC-only hooks.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": {
     "name": "ch-royde",
     "url": "https://github.com/ch-royde"
