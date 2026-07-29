@@ -7,10 +7,11 @@
 #      a context-awareness signal (drop it and you've likely lost the thread).
 #   2) Restate complex / multi-step requests before acting.
 #   3) Keep implementation and tests focused on the core acceptance loop.
-#   4) Require fresh command evidence before claiming verification success.
-#   5) Create verified local checkpoint commits during implementation while
+#   4) Delegate independent complex-code slices while the main agent integrates.
+#   5) Require fresh command evidence before claiming verification success.
+#   6) Create verified local checkpoint commits during implementation while
 #      automatically pushing checkpoints in an active harness workflow.
-#   6) Route the full and quick natural-language harness workflow triggers.
+#   7) Route the full and quick natural-language harness workflow triggers.
 #
 # These are *additional context*, not user instructions — the user's own
 # CLAUDE.md always takes precedence. Name lookup: HARNESS_USER_NAME env, else the
@@ -38,6 +39,8 @@ ${name_rule}
 **Restate complex requests before acting.** State the goal, scope, and deliverable in one or two sentences and wait for confirmation. A harness workflow trigger confirms its route, so restate the mode and begin. Ask one clarifying question only when the request cannot be restated safely.
 
 **Core-loop scope discipline.** Prove the smallest useful end-to-end behavior first. Do not implement or test speculative edge cases. Promote one only when required, reproduced, normally reachable, blocking the core flow, or a credible security/data-loss risk. Prefer one success test per slice; add failure tests only for required behavior, real branches, or regressions. Stop when the acceptance checks and directly affected existing tests pass. Skip exhaustive matrices, unrelated suites, and hypothetical hardening unless required.
+
+**Complex-code delegation.** In full mode, the main agent orchestrates and reviews while fresh subagents implement independent slices with non-overlapping ownership and minimum self-contained context. Quick mode must promote to full before delegation. Subagents do not commit or push; the checkpoint rule applies to the main agent, which integrates and verifies. Do not create slices solely for delegation.
 
 **Evidence before completion claims.** Require fresh command output before claiming a fix, passing tests, or completion. State which relevant checks were not run.
 

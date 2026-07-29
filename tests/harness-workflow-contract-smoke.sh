@@ -26,6 +26,18 @@ for phrase in \
   'Quick mode' \
   'Full mode' \
   'Core-loop scope discipline' \
+  'Delegated implementation' \
+  'prefer a fresh host-native subagent' \
+  'Main agent owns decomposition, dependency order, integration, verification, review' \
+  'minimum self-contained context' \
+  'no-history' \
+  'non-overlapping' \
+  'must not be reverted' \
+  'Subagents do not commit or push' \
+  'Quick mode stays with the main agent by default' \
+  'ask to promote it to full mode' \
+  'Do not create tickets or slices solely to use subagents' \
+  'host-native subagents are unavailable' \
   'Do not add implementation or tests for speculative edge cases' \
   'Stop expanding tests when the acceptance checks' \
   'Require either a configured upstream or an `origin` remote' \

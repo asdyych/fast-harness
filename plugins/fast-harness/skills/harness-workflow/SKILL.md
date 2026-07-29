@@ -92,17 +92,42 @@ Prove the smallest useful end-to-end behavior first.
 3. If planning artifacts changed tracked repository files, verify their format,
    checkpoint them, and ordinary-push.
 4. Work blockers-first. Treat each ticket as one `implement` phase and use the
-   ticket as its durable source of truth. Apply the shared gates below.
+   ticket as its durable source of truth. Apply delegated implementation and the
+   shared gates below.
 
 ## Quick mode
 
 Write a one-sentence goal and the minimum acceptance checks, then follow
 `implement` directly and apply the shared gates below. Do not create a spec or
-tickets.
+tickets. Quick mode stays with the main agent by default.
 
 If quick work grows beyond one bounded context or reveals unresolved product
 design, state that quick mode no longer fits and ask to promote it to full mode
 before creating planning artifacts.
+
+## Delegated implementation
+
+For complex full-mode work, prefer a fresh host-native subagent for an
+independently verifiable code ticket with clear ownership. Main agent owns decomposition, dependency order, integration, verification, review,
+checkpointing, pushes, and the final cross-review.
+
+1. Wait for blockers, then assign explicit non-overlapping files/modules,
+   interfaces, and acceptance checks. Run concurrently only dependency-free
+   slices.
+2. Give the subagent minimum self-contained context: ticket goal, owned paths or
+   seam, relevant repository rules, and narrow test commands. Use the host's
+   no-history/fresh-context option when supported; never pass unrelated history.
+   State that other agents may be editing and their work must not be reverted.
+3. Subagents do not commit or push. They implement only their owned slice and
+   return changed paths, check evidence, assumptions, and blockers.
+4. The main agent reviews owned paths, integrates, runs relevant checks, then
+   follows `checkpoint-commits`.
+
+Use the main agent directly when a slice is trivial, ownership overlaps,
+product/architecture is unresolved, or delegation would cost more context than
+it saves. Do not create tickets or slices solely to use subagents. If
+host-native subagents are unavailable, let the main agent implement and report
+the fallback; delegation is not a workflow blocker.
 
 ## Shared gates
 

@@ -63,7 +63,8 @@ npx skills@latest add mattpocock/skills
 grill 后的上下文 / Goal
   -> to-spec
   -> to-tickets
-  -> 逐 ticket implement + checkpoint commit/push
+  -> 逐 ticket implement（复杂且可独立时交给 subagent）
+  -> checkpoint commit/push
   -> cross-review
   -> 相关验证 + 最终 commit/push
 ```
@@ -81,6 +82,8 @@ grill 后的上下文 / Goal
 
 两条路线都先证明最小可用的端到端闭环，再考虑边界加固。只有明确验收要求、已复现缺陷、正常输入可达、阻塞核心流程或存在可信安全/数据损坏风险的边界情况才进入当前范围。每个行为切片优先保留一个代表性成功路径测试；失败路径只覆盖明确行为、真实分支或回归。验收检查和直接受影响的既有测试通过后即停止扩展，不默认补齐理论输入组合、穷举矩阵、全仓测试或无具体失败场景的防御性处理。
 
+复杂完整路线会优先把所有权清晰、可独立验证的代码 ticket 交给 fresh subagent。主 agent 保留依赖调度、diff 审核、集成验证、checkpoint 和最终 review；快速路线默认由主 agent 直接实现，避免为简单改动增加 delegation 成本。
+
 `/fast-harness-full` 和 `/fast-harness-quick` 是固定模式入口：命令后的全部文本都视为目标，即使目标中出现 `quick` 或 `full` 也不会改变路线。原 `/harness full|quick` 继续作为兼容入口。
 
 `checkpoint-commits` 是提交协议的唯一来源：实现任务默认按已验证行为切片创建本地提交，只暂存当前任务改动。`harness-workflow` 额外授权每个 checkpoint 普通 push；普通任务仍需明确授权才 push，历史改写始终需要明确授权。
@@ -89,7 +92,7 @@ grill 后的上下文 / Goal
 
 ### CC 会话规则
 
-CC 的 `SessionStart` hook 注入称呼、复杂请求复述、核心闭环优先、完成证据、checkpoint 和 workflow 路由六项常驻规则。
+CC 的 `SessionStart` hook 注入称呼、复杂请求复述、核心闭环优先、复杂代码 delegation、完成证据、checkpoint 和 workflow 路由七项常驻规则。
 
 配置称呼：
 
