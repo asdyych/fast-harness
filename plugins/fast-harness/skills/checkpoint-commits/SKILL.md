@@ -20,8 +20,9 @@ finished when an earlier coherent milestone is already verified.
 - A user instruction or repository rule that says not to commit takes
   precedence. Do not commit in a repository that explicitly requires a clean
   uncommitted handoff.
-- During an active `harness-workflow`, ordinary-push every checkpoint to the
-  current branch immediately. Invoking that workflow authorizes these pushes.
+- During an active `harness-workflow`, the main agent ordinary-pushes every
+  reviewed checkpoint. A delegated subagent may commit only in its
+  coordinator-granted serialized commit window and never pushes.
 - Outside `harness-workflow`, never push or open a pull request without explicit
   user authorization.
 - Never amend, rebase, squash, reset, force-push, or otherwise rewrite history
@@ -43,8 +44,9 @@ finished when an earlier coherent milestone is already verified.
    claiming ownership of both.
 5. Commit with a message that describes the behavior or invariant established.
    Do not use `WIP`, `checkpoint`, or vague progress messages.
-6. During `harness-workflow`, immediately run an ordinary `git push`. If the
-   branch has no upstream and `origin` exists, use
+6. During `harness-workflow`, the main agent immediately ordinary-pushes each
+   reviewed checkpoint. A delegated subagent stops after returning its commit
+   SHA and evidence. If the branch has no upstream and `origin` exists, use
    `git push -u origin <current-branch>`. A failed push does not erase the local
    commit: record it as pending, continue only work that remains safe, and never
    resolve rejection with force-push or automatic history rewriting.

@@ -21,16 +21,21 @@ required = [
     "Checkpoint commits during implementation",
     "Core-loop scope discipline",
     "Complex-code delegation",
-    "main agent orchestrates and reviews",
-    "fresh subagents implement independent slices",
-    "Quick mode must promote to full before delegation",
-    "Subagents do not commit or push",
-    "checkpoint rule applies to the main agent",
+    "SessionStart owns automatic dispatch",
+    "Full and Quick may delegate independent slices",
+    "non-overlapping ownership",
+    "minimum no-history context",
+    "narrow tests",
+    "Subagents run necessary narrow tests",
+    "coordinator-granted serialized commit window",
+    "may checkpoint-commit only owned paths",
+    "never pushes or reverts others",
+    "main agent schedules, reviews commits, integrates, final-verifies, cross-reviews, and pushes",
     "Do not implement or test speculative edge cases",
     "Stop when the acceptance checks and directly affected existing tests pass",
     "authorize local commits on the current branch by default",
     "stage only this task's changes",
-    "immediately ordinary-push every checkpoint",
+    "main agent immediately ordinary-pushes every reviewed checkpoint",
     "Harness workflow routing",
     "按照 harness 的流程去实现",
     "快速实现",
@@ -47,4 +52,12 @@ for phrase in required:
 
 if "Commit only on explicit request" in context:
     raise SystemExit("obsolete commit rule is still injected")
+
+for obsolete in [
+    "Quick mode must promote to full before delegation",
+    "Subagents do not commit or push",
+    "checkpoint rule applies to the main agent",
+]:
+    if obsolete in context:
+        raise SystemExit(f"obsolete delegation rule is still injected: {obsolete}")
 PY

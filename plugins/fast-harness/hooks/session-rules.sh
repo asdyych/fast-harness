@@ -7,7 +7,7 @@
 #      a context-awareness signal (drop it and you've likely lost the thread).
 #   2) Restate complex / multi-step requests before acting.
 #   3) Keep implementation and tests focused on the core acceptance loop.
-#   4) Delegate independent complex-code slices while the main agent integrates.
+#   4) Automatically delegate independent complex-code slices with safe commits.
 #   5) Require fresh command evidence before claiming verification success.
 #   6) Create verified local checkpoint commits during implementation while
 #      automatically pushing checkpoints in an active harness workflow.
@@ -40,11 +40,11 @@ ${name_rule}
 
 **Core-loop scope discipline.** Prove the smallest useful end-to-end behavior first. Do not implement or test speculative edge cases. Promote one only when required, reproduced, normally reachable, blocking the core flow, or a credible security/data-loss risk. Prefer one success test per slice; add failure tests only for required behavior, real branches, or regressions. Stop when the acceptance checks and directly affected existing tests pass. Skip exhaustive matrices, unrelated suites, and hypothetical hardening unless required.
 
-**Complex-code delegation.** In full mode, the main agent orchestrates and reviews while fresh subagents implement independent slices with non-overlapping ownership and minimum self-contained context. Quick mode must promote to full before delegation. Subagents do not commit or push; the checkpoint rule applies to the main agent, which integrates and verifies. Do not create slices solely for delegation.
+**Complex-code delegation.** SessionStart owns automatic dispatch. Full and Quick may delegate independent slices to fresh subagents with non-overlapping ownership and minimum no-history context. Give only goal, acceptance, paths/seams, rules/interfaces, and narrow tests; keep trivial, overlapping, or unresolved work local. Subagents run necessary narrow tests. In a coordinator-granted serialized commit window, one may checkpoint-commit only owned paths; it never pushes or reverts others. The main agent schedules, reviews commits, integrates, final-verifies, cross-reviews, and pushes. Continue locally if unavailable.
 
 **Evidence before completion claims.** Require fresh command output before claiming a fix, passing tests, or completion. State which relevant checks were not run.
 
-**Checkpoint commits during implementation.** Coding and bug-fix tasks authorize local commits on the current branch by default. After each coherent verified slice, create a focused, buildable commit. Inspect the worktree and stage only this task's changes; preserve unrelated work. During a harness workflow, immediately ordinary-push every checkpoint. Outside it, pushing requires explicit authorization. User/repository rules take precedence. Never amend, rebase, squash, reset, force-push, or otherwise rewrite history without explicit authorization.
+**Checkpoint commits during implementation.** Coding and bug-fix tasks authorize local commits on the current branch by default. After each coherent verified slice, create a focused, buildable commit. Inspect the worktree and stage only this task's changes; preserve unrelated work. For delegated work, this authorization is limited by the serialized commit rule above. During a harness workflow, the main agent immediately ordinary-pushes every reviewed checkpoint. Outside it, pushing requires explicit authorization. User/repository rules take precedence. Never amend, rebase, squash, reset, force-push, or otherwise rewrite history without explicit authorization.
 
 **Harness workflow routing.** \"按照 harness 的流程去实现\" selects full mode; \"快速实现\" selects quick mode. \`/fast-harness-full\` and \`/fast-harness-quick\` are fixed-mode direct aliases; remaining text is the goal. Restate the selected mode and begin unless a material product decision is unresolved. Both modes require one \`cross-review\` as the only review gate, relevant verification, checkpoint commits, and ordinary pushes.
 </fast-harness-rules>"
