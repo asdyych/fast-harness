@@ -102,6 +102,13 @@ Write a one-sentence goal and the minimum acceptance checks, then follow
 tickets. Apply the core automatic-delegation rule directly; independently
 verifiable slices may use subagents without promoting the route.
 
+When the quick change affects a user-visible web flow, include one
+representative real-browser acceptance check and run it through `e2e-browser`
+after the app's directly affected checks pass. Cover the changed success path,
+including console errors and failed requests; do not expand it into an
+exhaustive browser matrix. If the change has no browser-reachable behavior,
+record that browser E2E is not applicable instead of invoking it.
+
 If quick work reveals unresolved product design or needs planning artifacts,
 state that quick mode no longer fits and ask to promote it to full mode.
 
@@ -119,9 +126,11 @@ from `<plugin-root>/hooks/session-rules.sh`; do not duplicate that protocol here
    `checkpoint-commits`.
 2. After implementation, run directly affected project verification once. Fix
    only failures caused by the change.
-3. Run `cross-review` against `workflow_base`; it is the workflow's only review gate.
+3. In Quick mode, run the browser acceptance check defined above when the
+   change affects a user-visible web flow. Treat console errors and failed business requests as failures even when the page renders.
+4. Run `cross-review` against `workflow_base`; it is the workflow's only review gate.
    Do not also run `code-review`.
-4. Verify material findings against the scope rules. After accepted fixes,
+5. Verify material findings against the scope rules. After accepted fixes,
    rerun affected checks and use cross-review's one permitted follow-up only
    when the diff changed materially.
 

@@ -44,6 +44,9 @@ for phrase in \
   'Apply the core automatic-delegation rule' \
   'SessionStart delegation rule' \
   'ordinary-pushes every reviewed' \
+  'run it through `e2e-browser`' \
+  'If the change has no browser-reachable behavior' \
+  'console errors and failed business requests as failures' \
   'Do not add implementation or tests for speculative edge cases' \
   'Stop expanding tests when the acceptance checks' \
   'Require either a configured upstream or an `origin` remote' \
