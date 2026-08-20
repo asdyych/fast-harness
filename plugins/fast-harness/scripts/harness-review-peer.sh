@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# harness-review-peer.sh - invoke one shell CLI peer for cross-review.
+# harness-review-peer.sh - invoke one external CLI peer for cross-review.
 #
 # The script is intentionally thin: the agent still owns prompt construction,
 # triage, fixes, and convergence. This wrapper makes CLI invocation repeatable
@@ -186,6 +186,9 @@ write_meta() {
   {
     echo "peer=$PEER"
     echo "selected_peer=$SELECTED_PEER"
+    echo "selected_peer_kind=$SELECTED_PEER_KIND"
+    echo "peer_transport=external-cli"
+    echo "selected_peer_path=$(command -v "$SELECTED_PEER" 2>/dev/null || true)"
     echo "prompt_file=$PROMPT_FILE"
     echo "prompt_bytes=$PROMPT_BYTES"
     echo "timeout=$TIMEOUT"

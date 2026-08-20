@@ -39,7 +39,7 @@ not create another task ledger or own the development workflow.
    failure scenario. Explicitly exclude speculative hardening and edge cases
    that are not required, reproduced, reachable through normal inputs, blocking
    the core flow, or credible security/data-loss risks.
-6. Send the prompt to one different-model peer:
+6. Send the prompt to one different-model peer through the external CLI wrapper. The peer is a separate host process, not a Codex internal custom agent; this keeps its provider configuration isolated:
 
    ```bash
    "${HARNESS_PLUGIN_ROOT}/scripts/harness-review-peer.sh" \
