@@ -1,6 +1,6 @@
 {
   "name": "fast-harness",
-  "version": "0.3.4+codex.20260806104621",
+  "version": "0.3.4+codex.20260820142822",
   "description": "Matt workflow orchestration with checkpoint commit/push, Trace Browser E2E, and cross-model review.",
   "author": {
     "name": "ch-royde",
@@ -29,10 +29,10 @@
     ],
     "websiteURL": "https://github.com/ch-royde/fast-harness",
     "defaultPrompt": [
-      "/fast-harness-full 实现这个目标。",
-      "/fast-harness-quick 实现这个改动。",
-      "按照 harness 的流程去实现这个目标。",
-      "快速实现这个改动。",
+      "/fast-harness-full \u5b9e\u73b0\u8fd9\u4e2a\u76ee\u6807\u3002",
+      "/fast-harness-quick \u5b9e\u73b0\u8fd9\u4e2a\u6539\u52a8\u3002",
+      "\u6309\u7167 harness \u7684\u6d41\u7a0b\u53bb\u5b9e\u73b0\u8fd9\u4e2a\u76ee\u6807\u3002",
+      "\u5feb\u901f\u5b9e\u73b0\u8fd9\u4e2a\u6539\u52a8\u3002",
       "Implement this work with small verified local checkpoint commits.",
       "Run the real-browser E2E flow through Trace Browser.",
       "Review this change."

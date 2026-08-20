@@ -136,6 +136,7 @@ grep -qxF 'NO_FINDINGS: stubbed codex fallback' "$tmp/fallback-out.txt"
 grep -q '^peer=auto$' "$tmp/logs-codex-fallback/meta.txt"
 grep -q '^selected_peer=codex$' "$tmp/logs-codex-fallback/meta.txt"
 grep -q 'review prompt' "$FAKE_CODEX_STDIN"
+grep -q '^peer_transport=external-cli$' "$tmp/logs-codex-fallback/meta.txt"
 
 EXPECT_CC_MODE=safe-mode HARNESS_REVIEW_PEER_CC_MODE=safe-mode \
   "$SCRIPT" --peer cc --prompt-file "$tmp/prompt.md" --timeout 10 --log-dir "$tmp/logs-safe" > "$tmp/safe-out.txt" 2> "$tmp/safe-err.txt"

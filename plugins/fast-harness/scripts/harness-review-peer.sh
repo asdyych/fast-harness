@@ -165,7 +165,10 @@ else
   run_with_timeout() {
     local secs="$1"
     shift
-    "$@" &
+    local input_file
+    input_file="$(mktemp "${TMPDIR:-/tmp}/harness-review-input.XXXXXX")"
+    cat > "$input_file"
+    "$@" < "$input_file" &
     local pid=$!
     ( sleep "$secs" && kill "$pid" 2>/dev/null ) &
     local watcher=$!
@@ -173,6 +176,7 @@ else
     local result=$?
     kill "$watcher" 2>/dev/null || true
     wait "$watcher" 2>/dev/null || true
+    rm -f "$input_file"
     if [[ $result -eq 137 || $result -eq 143 ]]; then
       return 124
     fi
