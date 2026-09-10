@@ -1,6 +1,6 @@
 {
   "name": "fast-harness",
-  "version": "0.3.4+codex.20260820142822",
+  "version": "0.3.5+codex.20260910031316",
   "description": "Matt workflow orchestration with checkpoint commit/push, Trace Browser E2E, and cross-model review.",
   "author": {
     "name": "ch-royde",
