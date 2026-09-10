@@ -41,7 +41,9 @@ has_arg "-p" "$@" || { echo "missing -p" >&2; exit 92; }
 has_arg "--permission-mode" "$@" || { echo "missing --permission-mode" >&2; exit 94; }
 has_arg "plan" "$@" || { echo "missing plan permission mode" >&2; exit 100; }
 ! has_arg "--dangerously-skip-permissions" "$@" || { echo "unexpected permission bypass" >&2; exit 101; }
-! has_arg "--tools" "$@" || { echo "peer launched without tools" >&2; exit 103; }
+has_arg "--tools" "$@" || { echo "missing --tools" >&2; exit 103; }
+has_arg "Read,Grep,Glob" "$@" || { echo "peer not given its read-only toolset" >&2; exit 104; }
+! has_arg "default" "$@" || { echo "unexpected unrestricted toolset" >&2; exit 105; }
 has_arg "--verbose" "$@" || { echo "missing --verbose" >&2; exit 97; }
 if [[ "${EXPECT_PARTIALS:-0}" == "1" ]]; then
   has_arg "--include-partial-messages" "$@" || { echo "missing --include-partial-messages" >&2; exit 93; }
