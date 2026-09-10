@@ -269,8 +269,10 @@ case "$SELECTED_PEER_KIND" in
       --verbose
       --debug-file "$DEBUG_LOG"
       --permission-mode plan
-      --tools ""
     )
+    # No --tools restriction: the peer needs Read/Grep/Glob to inspect the repo
+    # instead of reviewing only what the prompt inlines. Plan mode already keeps
+    # the run read-only, so a wider toolset cannot mutate the working tree.
     if [[ "$CC_INCLUDE_PARTIALS" == "1" ]]; then
       CC_ARGS+=(--include-partial-messages)
     fi
